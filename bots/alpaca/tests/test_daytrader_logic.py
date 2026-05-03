@@ -174,8 +174,8 @@ class DaytraderLogicTests(unittest.TestCase):
         self.assertIsNone(error)
 
     def test_dynamic_stop_and_take_profit_bounds(self):
-        self.assertEqual(self.dt.calculate_dynamic_stop_pct([0.001, 0.002]), self.dt.STOP_LOSS_PCT)
-        self.assertEqual(self.dt.calculate_dynamic_stop_pct([0.05]), self.dt.MAX_DYNAMIC_STOP_LOSS_PCT)
+        self.assertEqual(self.dt.calculate_atr_stop_pct([0.001]*15), self.dt.MIN_DYNAMIC_STOP_LOSS_PCT)
+        self.assertEqual(self.dt.calculate_atr_stop_pct([0.05]*15), self.dt.MAX_DYNAMIC_STOP_LOSS_PCT)
         self.assertEqual(self.dt.calculate_take_profit_pct(0.02), self.dt.MAX_DYNAMIC_TAKE_PROFIT_PCT)
 
     def test_risk_estimate_uses_dynamic_stop_pct(self):

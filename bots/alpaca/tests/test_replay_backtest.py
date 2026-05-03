@@ -1,6 +1,4 @@
 import pytest
-from datetime import datetime
-import pytz
 from bots.alpaca.replay_backtest import (
     calculate_atr_stop_pct,
     calculate_take_profit_pct,
@@ -10,7 +8,6 @@ from bots.alpaca.replay_backtest import (
     parse_timestamp,
     TIMEZONE,
     STOP_LOSS_PCT,
-    VOLATILITY_STOP_MULTIPLIER,
     MIN_DYNAMIC_STOP_LOSS_PCT,
     MAX_DYNAMIC_STOP_LOSS_PCT,
 )
@@ -21,11 +18,11 @@ def test_parse_timestamp():
     assert ts.tzinfo.zone == TIMEZONE.zone
     
 def test_calculate_atr_stop_pct():
-    # Empty or zero ranges should return STOP_LOSS_PCT
+    # Empty or zero ranges should return STOP_LOSS_PCT if less than 14 elements
     assert calculate_atr_stop_pct([]) == STOP_LOSS_PCT
     assert calculate_atr_stop_pct([0, 0]) == STOP_LOSS_PCT
     
-    # Less than 14 valid ranges should return STOP_LOSS_PCT
+    # Less than 14 ranges should return STOP_LOSS_PCT
     ranges = [0.01] * 10
     assert calculate_atr_stop_pct(ranges) == STOP_LOSS_PCT
 
@@ -34,6 +31,9 @@ def test_calculate_atr_stop_pct():
     expected = 0.01 * 2.0
     expected = max(MIN_DYNAMIC_STOP_LOSS_PCT, min(MAX_DYNAMIC_STOP_LOSS_PCT, expected))
     assert calculate_atr_stop_pct(ranges) == pytest.approx(expected)
+
+    # 14 zero ranges returns MIN_DYNAMIC_STOP_LOSS_PCT
+    assert calculate_atr_stop_pct([0]*14) == MIN_DYNAMIC_STOP_LOSS_PCT
 
 def test_calculate_take_profit_pct():
     stop_pct = 0.01
@@ -96,3 +96,26 @@ def test_get_spy_regime():
     now_stale = parse_timestamp("2023-01-01T10:31:00Z")
     price, vwap, is_bullish, error = get_spy_regime(states, now_stale)
     assert error == "spy_regime_stale"
+
+def test_run_replay_integration():
+    import tempfile
+    import os
+    from bots.alpaca.replay_backtest import run_replay
+    
+    csv_content = """symbol,timestamp,open,high,low,close,volume
+AAPL,2023-01-01T10:00:00Z,100,101,99,100,1000
+AAPL,2023-01-01T10:01:00Z,100,101,99,100,1000
+SPY,2023-01-01T10:00:00Z,400,401,399,400,10000
+"""
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv') as tmp:
+        tmp.write(csv_content)
+        tmp_path = tmp.name
+
+    try:
+        summary = run_replay(tmp_path, assumed_spread_pct=0.0)
+        assert "bars_processed" in summary
+        assert "signals_detected" in summary
+        assert "entries" in summary
+        assert summary["bars_processed"] == 3
+    finally:
+        os.remove(tmp_path)

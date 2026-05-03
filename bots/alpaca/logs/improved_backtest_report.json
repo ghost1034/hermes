@@ -1,0 +1,52 @@
+{
+  "bars_processed": 24759,
+  "candidate_entries": 2,
+  "entries": [
+    {
+      "avg_volume": 57057.6,
+      "direction": "SHORT",
+      "dollar_volume": 12202433.520000001,
+      "price": 319.72,
+      "spy_price": 709.88,
+      "spy_vwap": 711.0428587644127,
+      "stop_loss_pct": 0.005,
+      "symbol": "AMD",
+      "take_profit_pct": 0.015,
+      "timestamp": "2026-04-28T11:58:00-04:00",
+      "volume": 38166.0,
+      "vwap": 320.17858575050934
+    },
+    {
+      "avg_volume": 55546.8,
+      "direction": "SHORT",
+      "dollar_volume": 11984711.7,
+      "price": 320.19,
+      "spy_price": 709.58,
+      "spy_vwap": 710.9466540925433,
+      "stop_loss_pct": 0.005,
+      "symbol": "AMD",
+      "take_profit_pct": 0.015,
+      "timestamp": "2026-04-28T12:43:00-04:00",
+      "volume": 37430.0,
+      "vwap": 320.2005743454919
+    }
+  ],
+  "entries_by_symbol": {
+    "AMD": 2
+  },
+  "rejections_by_reason": {
+    "poor_relative_strength": 2,
+    "poor_relative_weakness": 2,
+    "spy_regime_mismatch": 11,
+    "weak_directional_close": 22
+  },
+  "rejections_by_symbol": {
+    "AAPL": 9,
+    "AMD": 14,
+    "MSFT": 6,
+    "NVDA": 4,
+    "TSLA": 4
+  },
+  "signals_detected": 39,
+  "signals_rejected": 37
+}

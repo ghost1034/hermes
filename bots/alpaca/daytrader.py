@@ -571,14 +571,14 @@ def passes_bar_quality_filter(bar, is_long):
 
     return True
 
-def calculate_dynamic_stop_pct(range_history):
-    valid_ranges = [safe_float(value) for value in range_history if safe_float(value) > 0]
-    if not valid_ranges:
+def calculate_atr_stop_pct(range_history):
+    if len(range_history) < 14:
         return STOP_LOSS_PCT
-
-    avg_range_pct = sum(valid_ranges) / len(valid_ranges)
-    dynamic_stop_pct = max(STOP_LOSS_PCT, avg_range_pct * VOLATILITY_STOP_MULTIPLIER)
-    return max(MIN_DYNAMIC_STOP_LOSS_PCT, min(MAX_DYNAMIC_STOP_LOSS_PCT, dynamic_stop_pct))
+    # 14-period ATR approximation
+    atr_pct = sum(range_history[-14:]) / 14
+    # Set stop at 2x ATR
+    atr_stop = atr_pct * 2.0 
+    return max(MIN_DYNAMIC_STOP_LOSS_PCT, min(MAX_DYNAMIC_STOP_LOSS_PCT, atr_stop))
 
 def calculate_take_profit_pct(stop_loss_pct):
     dynamic_take_profit_pct = stop_loss_pct * TAKE_PROFIT_R_MULTIPLE
@@ -1320,14 +1320,24 @@ async def handle_bar(bar: Bar):
     with state_lock:
         if symbol not in market_data_state:
             market_data_state[symbol] = {
+                "first_price": bar.open,
                 "cum_vol": 0,
                 "cum_pv": 0,
                 "vol_history": [],
                 "range_history": [],
-                "last_bar_at": None
+                "last_price": None,
+                "last_bar_at": None,
+                "last_spike_at": None,
+                "last_spike_dir": None,
+                "last_spike_avg_vol": None,
             }
             
         state = market_data_state[symbol]
+        
+        if state.get("first_price", 0) > 0:
+            state["day_return"] = (bar.close - state["first_price"]) / state["first_price"]
+        else:
+            state["day_return"] = 0.0
         
         typical_price = (bar.high + bar.low + bar.close) / 3
         state["cum_vol"] += bar.volume
@@ -1357,15 +1367,56 @@ async def handle_bar(bar: Bar):
     if symbol == "SPY":
         return
 
-    is_above_vwap = bar.close > (vwap * 1.002)
-    is_below_vwap = bar.close < (vwap * 0.998)
     is_volume_spike = vol_history_len == 6 and current_vol > (avg_vol * 2) and current_vol > 10000
+    if is_volume_spike:
+        with state_lock:
+            if bar.close > (vwap * 1.002):
+                state["last_spike_dir"] = "LONG"
+                state["last_spike_at"] = state["last_bar_at"]
+                state["last_spike_avg_vol"] = avg_vol
+            elif bar.close < (vwap * 0.998):
+                state["last_spike_dir"] = "SHORT"
+                state["last_spike_at"] = state["last_bar_at"]
+                state["last_spike_avg_vol"] = avg_vol
+        return
 
-    if (is_above_vwap or is_below_vwap) and is_volume_spike:
-        direction = "LONG" if is_above_vwap else "SHORT"
-        vol_ratio = current_vol / max(1, avg_vol)
-        increment_observability_stat("signals_detected")
-        log_trade_event(
+    with state_lock:
+        last_spike_at = state.get("last_spike_at")
+        last_spike_dir = state.get("last_spike_dir")
+        last_spike_avg_vol = state.get("last_spike_avg_vol")
+        last_bar_at = state.get("last_bar_at")
+
+    if not last_spike_at or not last_bar_at:
+        return
+
+    time_since_spike = (last_bar_at - last_spike_at).total_seconds() / 60.0
+    if time_since_spike > 15:
+        with state_lock:
+            state["last_spike_dir"] = None
+            state["last_spike_at"] = None
+            state["last_spike_avg_vol"] = None
+        return
+
+    is_pullback = False
+    is_above_vwap = False
+    is_below_vwap = False
+
+    target_avg_vol = last_spike_avg_vol if last_spike_avg_vol is not None else avg_vol
+
+    if last_spike_dir == "LONG" and bar.low <= (vwap * 1.001) and bar.close >= vwap and current_vol < target_avg_vol:
+        is_pullback = True
+        is_above_vwap = True
+    elif last_spike_dir == "SHORT" and bar.high >= (vwap * 0.999) and bar.close <= vwap and current_vol < target_avg_vol:
+        is_pullback = True
+        is_below_vwap = True
+
+    if not is_pullback:
+        return
+
+    direction = "LONG" if is_above_vwap else "SHORT"
+    vol_ratio = current_vol / max(1, avg_vol)
+    increment_observability_stat("signals_detected")
+    log_trade_event(
             "signal_detected",
             symbol,
             direction=direction,
@@ -1379,95 +1430,112 @@ async def handle_bar(bar: Bar):
             bar_close=bar.close
         )
 
-        if not is_symbol_trade_allowed(symbol):
-            return
+    if not is_symbol_trade_allowed(symbol):
+        return
 
-        dollar_volume = current_vol * bar.close
-        if dollar_volume < MIN_DOLLAR_VOLUME_1M:
-            logger.info(f"Skipping {symbol} signal - 1m dollar volume too low (${dollar_volume:,.0f} < ${MIN_DOLLAR_VOLUME_1M:,.0f}).")
-            log_signal_rejection(symbol, "dollar_volume_too_low", dollar_volume=dollar_volume, min_dollar_volume=MIN_DOLLAR_VOLUME_1M)
-            return
+    dollar_volume = current_vol * bar.close
+    if dollar_volume < MIN_DOLLAR_VOLUME_1M:
+        logger.info(f"Skipping {symbol} signal - 1m dollar volume too low (${dollar_volume:,.0f} < ${MIN_DOLLAR_VOLUME_1M:,.0f}).")
+        log_signal_rejection(symbol, "dollar_volume_too_low", dollar_volume=dollar_volume, min_dollar_volume=MIN_DOLLAR_VOLUME_1M)
+        return
 
-        if not passes_bar_quality_filter(bar, is_above_vwap):
-            return
+    if not passes_bar_quality_filter(bar, is_above_vwap):
+        return
 
-        if not await passes_spread_filter(symbol):
-            return
+    if not await passes_spread_filter(symbol):
+        return
 
-        stop_loss_pct = calculate_dynamic_stop_pct(range_history)
-        take_profit_pct = calculate_take_profit_pct(stop_loss_pct)
-        
-        if direction == "SHORT":
-            try:
-                asset = await asyncio.to_thread(trading_client.get_asset, symbol)
-                if not asset.shortable or not asset.easy_to_borrow:
-                    logger.info(f"Skipping short signal for {symbol} - not shortable or not easy to borrow.")
-                    log_signal_rejection(symbol, "not_shortable", shortable=getattr(asset, "shortable", None), easy_to_borrow=getattr(asset, "easy_to_borrow", None))
-                    return
-            except Exception as e:
-                logger.error(f"Error checking shortability for {symbol}: {e}")
-                log_signal_rejection(symbol, "shortability_check_failed", error=str(e))
+    stop_loss_pct = calculate_atr_stop_pct(range_history)
+    take_profit_pct = calculate_take_profit_pct(stop_loss_pct)
+    
+    if direction == "SHORT":
+        try:
+            asset = await asyncio.to_thread(trading_client.get_asset, symbol)
+            if not asset.shortable or not asset.easy_to_borrow:
+                logger.info(f"Skipping short signal for {symbol} - not shortable or not easy to borrow.")
+                log_signal_rejection(symbol, "not_shortable", shortable=getattr(asset, "shortable", None), easy_to_borrow=getattr(asset, "easy_to_borrow", None))
                 return
-
-        logger.info(f"*** {direction} SIGNAL TRIGGERED for {symbol} *** (Price: {bar.close}, VWAP: {vwap:.2f}, Vol: {current_vol})")
-        spy_price, spy_vwap, spy_is_bullish, spy_regime_error = get_fresh_spy_regime()
-        if spy_regime_error:
-            logger.info(f"Skipping {symbol} setup - SPY regime unavailable: {spy_regime_error}.")
-            log_signal_rejection(symbol, "spy_regime_unavailable", spy_regime_error=spy_regime_error)
-            send_rate_limited_alert("spy_regime_unavailable", f"Alpaca bot is skipping entries because SPY regime data is unavailable: {spy_regime_error}")
+        except Exception as e:
+            logger.error(f"Error checking shortability for {symbol}: {e}")
+            log_signal_rejection(symbol, "shortability_check_failed", error=str(e))
             return
+
+    logger.info(f"*** {direction} SIGNAL TRIGGERED for {symbol} *** (Price: {bar.close}, VWAP: {vwap:.2f}, Vol: {current_vol})")
+    spy_price, spy_vwap, spy_is_bullish, spy_regime_error = get_fresh_spy_regime()
+    if spy_regime_error:
+        logger.info(f"Skipping {symbol} setup - SPY regime unavailable: {spy_regime_error}.")
+        log_signal_rejection(symbol, "spy_regime_unavailable", spy_regime_error=spy_regime_error)
+        send_rate_limited_alert("spy_regime_unavailable", f"Alpaca bot is skipping entries because SPY regime data is unavailable: {spy_regime_error}")
+        return
         
-        target_size_pct = calculate_intelligent_size(current_vol, avg_vol, current_time, spy_price, spy_vwap, is_long=is_above_vwap)
-        
-        # Hard Regime Filter: Do not take counter-trend entries.
-        if is_above_vwap and not spy_is_bullish:
-            logger.info(f"Skipping LONG setup on {symbol} due to bearish SPY regime.")
-            log_signal_rejection(symbol, "spy_regime_mismatch", direction="LONG", spy_price=spy_price, spy_vwap=spy_vwap)
-            return
-        if not is_above_vwap and spy_is_bullish:
-            logger.info(f"Skipping SHORT setup on {symbol} due to bullish SPY regime.")
-            log_signal_rejection(symbol, "spy_regime_mismatch", direction="SHORT", spy_price=spy_price, spy_vwap=spy_vwap)
-            return
+    with state_lock:
+        spy_state = market_data_state.get("SPY")
+        spy_first_price = spy_state.get("first_price", 0) if spy_state else 0
+        spy_last_price = spy_state.get("last_price") if spy_state else None
+        stock_return = state.get("day_return", 0.0)
 
-        logger.info(f"Intelligent sizing calculated for {symbol}: {target_size_pct:.2%}")
-        logger.info(f"Dynamic exits for {symbol}: SL {stop_loss_pct:.2%}, TP {take_profit_pct:.2%}")
-
-        if not await reserve_symbol_for_entry(symbol, target_size_pct, bar.close, stop_loss_pct):
+    if spy_first_price > 0 and spy_last_price is not None:
+        spy_return = (spy_last_price - spy_first_price) / spy_first_price
+        if is_above_vwap and stock_return <= spy_return:
+            logger.info(f"Skipping LONG setup on {symbol} due to poor relative strength compared to SPY.")
+            log_signal_rejection(symbol, "poor_relative_strength", spy_return=spy_return, stock_return=stock_return)
             return
-        log_trade_event(
-            "entry_reserved",
-            symbol,
-            direction=direction,
-            target_size_pct=target_size_pct,
-            stop_loss_pct=stop_loss_pct,
-            take_profit_pct=take_profit_pct,
-            intended_risk=estimate_entry_stop_risk(initial_equity * target_size_pct, bar.close, stop_loss_pct),
-            spy_price=spy_price,
-            spy_vwap=spy_vwap,
-            vol_ratio=vol_ratio,
-            dollar_volume=dollar_volume
-        )
-        
-        def place_order():
-            try:
-                success = submit_bracket_order(
-                    symbol,
-                    bar.close,
-                    target_size_pct,
-                    stop_loss_pct=stop_loss_pct,
-                    take_profit_pct=take_profit_pct,
-                    is_long=is_above_vwap
-                )
-            except Exception as e:
-                logger.error(f"Unhandled order placement error for {symbol}: {e}")
-                increment_observability_stat("entries_failed")
-                log_trade_event("entry_failed", symbol, reason="place_order_exception", error=str(e))
-                success = False
-            if not success:
-                release_entry_reservation(symbol)
+        if not is_above_vwap and stock_return >= spy_return:
+            logger.info(f"Skipping SHORT setup on {symbol} due to poor relative weakness compared to SPY.")
+            log_signal_rejection(symbol, "poor_relative_weakness", spy_return=spy_return, stock_return=stock_return)
+            return
+    
+    target_size_pct = calculate_intelligent_size(current_vol, avg_vol, current_time, spy_price, spy_vwap, is_long=is_above_vwap)
+    
+    # Hard Regime Filter: Do not take counter-trend entries.
+    if is_above_vwap and not spy_is_bullish:
+        logger.info(f"Skipping LONG setup on {symbol} due to bearish SPY regime.")
+        log_signal_rejection(symbol, "spy_regime_mismatch", direction="LONG", spy_price=spy_price, spy_vwap=spy_vwap)
+        return
+    if not is_above_vwap and spy_is_bullish:
+        logger.info(f"Skipping SHORT setup on {symbol} due to bullish SPY regime.")
+        log_signal_rejection(symbol, "spy_regime_mismatch", direction="SHORT", spy_price=spy_price, spy_vwap=spy_vwap)
+        return
 
-        # Dispatch in background task to avoid blocking the websocket message pump
-        create_background_task(asyncio.to_thread(place_order), f"place order {symbol}")
+    logger.info(f"Intelligent sizing calculated for {symbol}: {target_size_pct:.2%}")
+    logger.info(f"Dynamic exits for {symbol}: SL {stop_loss_pct:.2%}, TP {take_profit_pct:.2%}")
+
+    if not await reserve_symbol_for_entry(symbol, target_size_pct, bar.close, stop_loss_pct):
+        return
+    log_trade_event(
+        "entry_reserved",
+        symbol,
+        direction=direction,
+        target_size_pct=target_size_pct,
+        stop_loss_pct=stop_loss_pct,
+        take_profit_pct=take_profit_pct,
+        intended_risk=estimate_entry_stop_risk(initial_equity * target_size_pct, bar.close, stop_loss_pct),
+        spy_price=spy_price,
+        spy_vwap=spy_vwap,
+        vol_ratio=vol_ratio,
+        dollar_volume=dollar_volume
+    )
+    
+    def place_order():
+        try:
+            success = submit_bracket_order(
+                symbol,
+                bar.close,
+                target_size_pct,
+                stop_loss_pct=stop_loss_pct,
+                take_profit_pct=take_profit_pct,
+                is_long=is_above_vwap
+            )
+        except Exception as e:
+            logger.error(f"Unhandled order placement error for {symbol}: {e}")
+            increment_observability_stat("entries_failed")
+            log_trade_event("entry_failed", symbol, reason="place_order_exception", error=str(e))
+            success = False
+        if not success:
+            release_entry_reservation(symbol)
+
+    # Dispatch in background task to avoid blocking the websocket message pump
+    create_background_task(asyncio.to_thread(place_order), f"place order {symbol}")
 
 async def risk_manager():
     global initial_equity, trading_halted_today, current_trading_day
@@ -1723,14 +1791,23 @@ async def main():
                 for sym, sym_bars in bars.data.items():
                     if sym not in market_data_state:
                         market_data_state[sym] = {
+                            "first_price": sym_bars[0].open if sym_bars else 0.0,
                             "cum_vol": 0,
                             "cum_pv": 0,
                             "vol_history": [],
                             "range_history": [],
-                            "last_bar_at": None
+                            "last_price": None,
+                            "last_bar_at": None,
+                            "last_spike_at": None,
+                            "last_spike_dir": None,
+                            "last_spike_avg_vol": None,
                         }
                     state = market_data_state[sym]
                     for b in sym_bars:
+                        if state.get("first_price", 0) > 0:
+                            state["day_return"] = (b.close - state["first_price"]) / state["first_price"]
+                        else:
+                            state["day_return"] = 0.0
                         typical_price = (b.high + b.low + b.close) / 3
                         state["cum_vol"] += b.volume
                         state["cum_pv"] += typical_price * b.volume

@@ -1,0 +1,14 @@
+Review of Task 2 implementation (`/home/ianstewart/bots/alpaca/replay_backtest.py`) complete.
+
+- Critical Issues: [must fix before proceeding]
+  - None found.
+
+- Important Issues: [should fix]
+  - Duplicate Entries for Same Spike: When a valid pullback triggers an entry (appended to `summary["entries"]`), the `state["last_spike_at"]` and `state["last_spike_dir"]` are not cleared. If the price remains in the pullback criteria for multiple consecutive minutes, the bot will log multiple entries for the same setup. You should likely clear the spike state upon a successful entry to prevent duplicate logging for the same pullback.
+  - Missing Test Coverage: The file contains complex financial logic (VWAP calculation, spike detection, pullback evaluation, relative strength, stop-loss calculations) but has almost no test coverage. A `test_replay_backtest.py` should be added to verify correctness and prevent regressions.
+
+- Minor Issues: [optional]
+  - Spike Expiration Inefficiency: When a spike expires (`time_since_spike > 15`), `state["last_spike_dir"]` is set to `None`, but `state["last_spike_at"]` remains populated. This causes the `if not state.get("last_spike_at"):` check to fail on subsequent bars, unnecessarily calculating the timedelta and executing the `continue` branch for every future bar of that symbol. Setting both to `None` is cleaner.
+  - Memory Usage: `bars = [r for r in (parse_row(row) for row in csv.DictReader(f)) if r is not None]` reads the entire CSV into memory before sorting. For very large backtest datasets, this could cause memory exhaustion. Consider streaming or batching if large multi-day CSVs are expected.
+
+- Verdict: REQUEST_CHANGES

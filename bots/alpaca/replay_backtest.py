@@ -20,7 +20,6 @@ MAX_SPREAD_PCT = float(os.environ.get("MAX_SPREAD_PCT", "0.002"))
 MIN_DOLLAR_VOLUME_1M = float(os.environ.get("MIN_DOLLAR_VOLUME_1M", "250000"))
 MAX_BAR_RANGE_PCT = float(os.environ.get("MAX_BAR_RANGE_PCT", "0.03"))
 MIN_DIRECTIONAL_CLOSE_LOCATION = float(os.environ.get("MIN_DIRECTIONAL_CLOSE_LOCATION", "0.65"))
-VOLATILITY_STOP_MULTIPLIER = float(os.environ.get("VOLATILITY_STOP_MULTIPLIER", "1.25"))
 MIN_DYNAMIC_STOP_LOSS_PCT = float(os.environ.get("MIN_DYNAMIC_STOP_LOSS_PCT", "0.005"))
 MAX_DYNAMIC_STOP_LOSS_PCT = float(os.environ.get("MAX_DYNAMIC_STOP_LOSS_PCT", "0.02"))
 TAKE_PROFIT_R_MULTIPLE = float(os.environ.get("TAKE_PROFIT_R_MULTIPLE", "2.0"))
@@ -57,11 +56,10 @@ def reject(summary, symbol, reason):
 
 
 def calculate_atr_stop_pct(range_history):
-    valid_ranges = [value for value in range_history if value > 0]
-    if len(valid_ranges) < 14:
+    if len(range_history) < 14:
         return STOP_LOSS_PCT
     # 14-period ATR approximation
-    atr_pct = sum(valid_ranges[-14:]) / 14
+    atr_pct = sum(range_history[-14:]) / 14
     # Set stop at 2x ATR
     atr_stop = atr_pct * 2.0 
     return max(MIN_DYNAMIC_STOP_LOSS_PCT, min(MAX_DYNAMIC_STOP_LOSS_PCT, atr_stop))
@@ -98,6 +96,7 @@ def update_state(states, bar):
         "last_bar_at": None,
         "last_spike_at": None,
         "last_spike_dir": None,
+        "last_spike_avg_vol": None,
     })
     if state["first_price"] > 0:
         state["day_return"] = (bar["close"] - state["first_price"]) / state["first_price"]
@@ -172,9 +171,11 @@ def run_replay(csv_path, assumed_spread_pct):
             if bar["close"] > (vwap * 1.002):
                 state["last_spike_dir"] = "LONG"
                 state["last_spike_at"] = bar["timestamp"]
+                state["last_spike_avg_vol"] = avg_vol
             elif bar["close"] < (vwap * 0.998):
                 state["last_spike_dir"] = "SHORT"
                 state["last_spike_at"] = bar["timestamp"]
+                state["last_spike_avg_vol"] = avg_vol
             continue # Don't enter on the spike!
             
         # Check for pullback entry if we had a spike recently (within last 15 mins)
@@ -185,6 +186,7 @@ def run_replay(csv_path, assumed_spread_pct):
         if time_since_spike > 15:
             state["last_spike_dir"] = None # Expire spike
             state["last_spike_at"] = None
+            state["last_spike_avg_vol"] = None
             continue
             
         # Pullback logic: Price touches VWAP on low volume
@@ -193,10 +195,12 @@ def run_replay(csv_path, assumed_spread_pct):
         is_above_vwap = False
         is_below_vwap = False
         
-        if direction == "LONG" and bar["low"] <= (vwap * 1.001) and bar["close"] >= vwap and current_vol < avg_vol:
+        target_avg_vol = state["last_spike_avg_vol"] if state["last_spike_avg_vol"] is not None else avg_vol
+        
+        if direction == "LONG" and bar["low"] <= (vwap * 1.001) and bar["close"] >= vwap and current_vol < target_avg_vol:
             is_pullback = True
             is_above_vwap = True
-        elif direction == "SHORT" and bar["high"] >= (vwap * 0.999) and bar["close"] <= vwap and current_vol < avg_vol:
+        elif direction == "SHORT" and bar["high"] >= (vwap * 0.999) and bar["close"] <= vwap and current_vol < target_avg_vol:
             is_pullback = True
             is_below_vwap = True
             
@@ -269,6 +273,7 @@ def run_replay(csv_path, assumed_spread_pct):
 
         state["last_spike_dir"] = None
         state["last_spike_at"] = None
+        state["last_spike_avg_vol"] = None
 
     summary["rejections_by_reason"] = dict(summary["rejections_by_reason"])
     summary["rejections_by_symbol"] = dict(summary["rejections_by_symbol"])
