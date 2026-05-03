@@ -1155,9 +1155,9 @@ def calculate_intelligent_size(current_vol, avg_vol, current_time, spy_price, sp
     if vol_ratio <= 2.0:
         base_size = 0.05
     elif vol_ratio >= 5.0:
-        base_size = 0.10
+        base_size = 0.15
     else:
-        base_size = 0.05 + ((vol_ratio - 2.0) / 3.0) * 0.05
+        base_size = 0.05 + ((vol_ratio - 2.0) / 3.0) * 0.10
         
     # 2. Market Regime Alignment
     if spy_price and spy_vwap:
