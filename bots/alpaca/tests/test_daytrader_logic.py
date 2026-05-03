@@ -187,10 +187,18 @@ class DaytraderLogicTests(unittest.TestCase):
         self.assertFalse(self.dt.is_symbol_trade_allowed("AAPL", now=now))
 
         self.dt.symbol_cooldowns.clear()
-        self.dt.symbol_trade_counts["AAPL"] = self.dt.MAX_TRADES_PER_SYMBOL_PER_DAY
+        
+        # Test unlimited behavior (0)
+        self.dt.MAX_TRADES_PER_SYMBOL_PER_DAY = 0
+        self.dt.symbol_trade_counts["AAPL"] = 10
+        self.assertTrue(self.dt.is_symbol_trade_allowed("AAPL", now=now))
+        
+        # Test limited behavior (3)
+        self.dt.MAX_TRADES_PER_SYMBOL_PER_DAY = 3
+        self.dt.symbol_trade_counts["AAPL"] = 3
         self.assertFalse(self.dt.is_symbol_trade_allowed("AAPL", now=now))
-
-        self.dt.symbol_trade_counts["AAPL"] = self.dt.MAX_TRADES_PER_SYMBOL_PER_DAY - 1
+        
+        self.dt.symbol_trade_counts["AAPL"] = 2
         self.assertTrue(self.dt.is_symbol_trade_allowed("AAPL", now=now))
 
     def test_bar_quality_filter_requires_directional_close(self):
