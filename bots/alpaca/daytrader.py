@@ -77,7 +77,7 @@ MAX_DYNAMIC_STOP_LOSS_PCT = float(os.environ.get("MAX_DYNAMIC_STOP_LOSS_PCT", "0
 TAKE_PROFIT_R_MULTIPLE = float(os.environ.get("TAKE_PROFIT_R_MULTIPLE", "2.0"))
 MAX_DYNAMIC_TAKE_PROFIT_PCT = float(os.environ.get("MAX_DYNAMIC_TAKE_PROFIT_PCT", "0.03"))
 SYMBOL_COOLDOWN_MINUTES = float(os.environ.get("SYMBOL_COOLDOWN_MINUTES", "30"))
-MAX_TRADES_PER_SYMBOL_PER_DAY = int(os.environ.get("MAX_TRADES_PER_SYMBOL_PER_DAY", "3"))
+MAX_TRADES_PER_SYMBOL_PER_DAY = int(os.environ.get("MAX_TRADES_PER_SYMBOL_PER_DAY", "0"))
 TRADE_EVENT_LOG_FILE = os.environ.get(
     "ALPACA_TRADE_EVENT_LOG_FILE",
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs", "trade_events.jsonl")
@@ -488,7 +488,7 @@ def is_symbol_trade_allowed(symbol, now=None):
         log_signal_rejection(symbol, "symbol_cooldown", cooldown_until=as_ny_datetime(cooldown_until))
         return False
 
-    if trade_count >= MAX_TRADES_PER_SYMBOL_PER_DAY:
+    if MAX_TRADES_PER_SYMBOL_PER_DAY > 0 and trade_count >= MAX_TRADES_PER_SYMBOL_PER_DAY:
         logger.info(f"Skipping {symbol} signal - max daily symbol trades reached ({MAX_TRADES_PER_SYMBOL_PER_DAY}).")
         log_signal_rejection(symbol, "max_symbol_trades", trade_count=trade_count, max_trades=MAX_TRADES_PER_SYMBOL_PER_DAY)
         return False
