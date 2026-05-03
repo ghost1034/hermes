@@ -1,0 +1,48 @@
+2026-04-29 14:19:40,583 - INFO - Executing daily state reset...
+2026-04-29 14:19:40,618 - INFO - Restored 2 symbols to traded_today state from Alpaca history.
+2026-04-29 14:19:40,619 - INFO - Starting High-Volume Day Trading Bot. Initial Equity: $98634.11
+2026-04-29 14:19:40,619 - INFO - Fetching top 150 active stocks by volume from Alpaca Screener API to filter for price...
+2026-04-29 14:19:43,995 - INFO - Filtered watchlist down to 50 non-penny stocks (>= $10.00).
+2026-04-29 14:19:43,996 - INFO - Running Data Primer: Fetching today's 1-Min bars to prime VWAP state...
+2026-04-29 14:19:44,773 - INFO - Data Primer complete. Primed 50 symbols.
+2026-04-29 14:19:44,774 - INFO - Subscribing to 50 most active symbols: ['SOFI', 'INTC', 'SOXS', 'NOK', 'KALV']...
+2026-04-29 14:19:44,774 - INFO - Waiting for market data...
+2026-04-29 14:19:44,775 - INFO - started data stream
+2026-04-29 14:19:44,776 - INFO - starting data websocket connection
+2026-04-29 14:19:44,777 - INFO - connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-29 14:19:45,699 - INFO - connected to wss://stream.data.alpaca.markets/v2/iex
+2026-04-29 14:19:45,904 - INFO - subscribed to bars: ['AAL', 'AMD', 'AMZN', 'BE', 'BITO', 'BMNR', 'CCL', 'CDE', 'CMG', 'CRML', 'CRWV', 'ETHA', 'EWZ', 'F', 'GOOGL', 'HIMS', 'HOOD', 'HYG', 'IBIT', 'INTC', 'IONQ', 'IREN', 'KALV', 'MARA', 'MSFT', 'MU', 'NOK', 'NTLA', 'NVDA', 'NVTS', 'PLTR', 'QCOM', 'RGTI', 'RKLB', 'SBUX', 'SMCI', 'SMR', 'SOFI', 'SOXL', 'SOXS', 'SPY', 'SQQQ', 'TEVA', 'TQQQ', 'TSLA', 'TSLL', 'TTD', 'V', 'VALE', 'XLE']
+2026-04-29 14:20:00,566 - INFO - *** LONG SIGNAL TRIGGERED for VALE *** (Price: 16.08, VWAP: 16.03, Vol: 23950.0)
+2026-04-29 14:20:00,567 - INFO - Intelligent sizing calculated for VALE: 8.03%
+2026-04-29 14:20:00,682 - INFO - EXECUTED: Split Buy 492 VALE @ 16.08. TP: 16.24, SL: 15.96
+2026-04-29 14:20:00,719 - INFO - *** SHORT SIGNAL TRIGGERED for SMCI *** (Price: 25.6, VWAP: 25.99, Vol: 16255.0)
+2026-04-29 14:20:00,719 - INFO - Skipping SHORT setup on SMCI due to bullish SPY regime.
+2026-04-29 14:21:00,483 - INFO - *** SHORT SIGNAL TRIGGERED for TTD *** (Price: 23.725, VWAP: 23.97, Vol: 17199.0)
+2026-04-29 14:21:00,484 - INFO - Skipping SHORT setup on TTD due to bullish SPY regime.
+2026-04-29 14:22:00,719 - INFO - *** LONG SIGNAL TRIGGERED for NVTS *** (Price: 15.005, VWAP: 14.74, Vol: 11622.0)
+2026-04-29 14:22:00,719 - INFO - Intelligent sizing calculated for NVTS: 9.40%
+2026-04-29 14:22:00,832 - INFO - EXECUTED: Split Buy 618 NVTS @ 15.005. TP: 15.16, SL: 14.89
+2026-04-29 14:23:32,194 - INFO - Take profit limit order no longer pending for NVTS (likely filled). Activating trailing stop on runner.
+2026-04-29 14:25:00,610 - INFO - Skipping short signal for SOXS - not shortable or not easy to borrow.
+2026-04-29 14:27:00,714 - INFO - *** LONG SIGNAL TRIGGERED for CMG *** (Price: 33.005, VWAP: 32.83, Vol: 10122.0)
+2026-04-29 14:27:00,714 - INFO - Intelligent sizing calculated for CMG: 8.55%
+2026-04-29 14:27:00,714 - INFO - *** LONG SIGNAL TRIGGERED for ETHA *** (Price: 17.395, VWAP: 17.35, Vol: 23700.0)
+2026-04-29 14:27:00,714 - INFO - Intelligent sizing calculated for ETHA: 10.00%
+2026-04-29 14:27:00,823 - INFO - EXECUTED: Split Buy 255 CMG @ 33.005. TP: 33.34, SL: 32.76
+2026-04-29 14:27:00,955 - INFO - EXECUTED: Split Buy 567 ETHA @ 17.395. TP: 17.57, SL: 17.26
+2026-04-29 14:28:00,508 - INFO - *** SHORT SIGNAL TRIGGERED for RGTI *** (Price: 15.64, VWAP: 15.70, Vol: 12164.0)
+2026-04-29 14:28:00,508 - INFO - Skipping SHORT setup on RGTI due to bullish SPY regime.
+2026-04-30 23:49:34,662 - INFO - Loaded persisted daily trading state. Initial Equity: $98763.22, Halted: False
+2026-04-30 23:49:34,662 - INFO - Starting High-Volume Day Trading Bot. Initial Equity: $98763.22
+2026-04-30 23:49:34,662 - INFO - Fetching top 150 active stocks by volume from Alpaca Screener API to filter for price...
+2026-04-30 23:49:34,954 - INFO - Filtered watchlist down to 50 non-penny stocks (>= $10.00).
+2026-04-30 23:49:34,955 - INFO - Running Data Primer: Fetching today's 1-Min bars to prime VWAP state...
+2026-04-30 23:49:35,652 - INFO - Data Primer complete. Primed 50 symbols.
+2026-04-30 23:49:35,652 - INFO - Subscribing to 50 most active symbols: ['NVDA', 'SOXS', 'INTC', 'NOK', 'AMZN']...
+2026-04-30 23:49:35,652 - INFO - Waiting for market data...
+2026-04-30 23:49:35,652 - INFO - Starting data stream...
+2026-04-30 23:49:35,654 - INFO - started data stream
+2026-04-30 23:49:35,655 - INFO - starting data websocket connection
+2026-04-30 23:49:35,655 - INFO - connecting to wss://stream.data.alpaca.markets/v2/iex
+2026-04-30 23:49:35,837 - INFO - connected to wss://stream.data.alpaca.markets/v2/iex
+2026-04-30 23:49:35,866 - INFO - subscribed to bars: ['AAL', 'AAPL', 'AMD', 'AMZN', 'BITO', 'CDE', 'CMCSA', 'CMG', 'CNH', 'EEM', 'ET', 'F', 'GOOG', 'GOOGL', 'HCAI', 'HOOD', 'HYG', 'INTC', 'IWM', 'LQD', 'MARA', 'META', 'MSFT', 'MU', 'NFLX', 'NOK', 'NU', 'NVDA', 'ONDS', 'PFE', 'PLTR', 'QBTS', 'QCOM', 'QQQ', 'RIVN', 'SOFI', 'SOXL', 'SOXS', 'SPY', 'SQQQ', 'T', 'TQQQ', 'TSLA', 'TSLL', 'USAR', 'VISN', 'VZ', 'WULF', 'XLE', 'XLF']
