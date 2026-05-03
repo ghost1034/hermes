@@ -4,7 +4,7 @@ import csv
 import json
 import os
 from collections import defaultdict
-from datetime import datetime, time as datetime_time, timedelta
+from datetime import datetime, time as datetime_time
 
 import pytz
 
@@ -36,15 +36,18 @@ def parse_timestamp(value):
 
 
 def parse_row(row):
-    return {
-        "symbol": row["symbol"].upper(),
-        "timestamp": parse_timestamp(row["timestamp"]),
-        "open": float(row.get("open") or row.get("o")),
-        "high": float(row.get("high") or row.get("h")),
-        "low": float(row.get("low") or row.get("l")),
-        "close": float(row.get("close") or row.get("c")),
-        "volume": float(row.get("volume") or row.get("v")),
-    }
+    try:
+        return {
+            "symbol": row["symbol"].upper(),
+            "timestamp": parse_timestamp(row["timestamp"]),
+            "open": float(row.get("open") or row.get("o") or 0),
+            "high": float(row.get("high") or row.get("h") or 0),
+            "low": float(row.get("low") or row.get("l") or 0),
+            "close": float(row.get("close") or row.get("c") or 0),
+            "volume": float(row.get("volume") or row.get("v") or 0),
+        }
+    except (ValueError, TypeError, KeyError):
+        return None
 
 
 def reject(summary, symbol, reason):
@@ -53,13 +56,15 @@ def reject(summary, symbol, reason):
     summary["rejections_by_symbol"][symbol] += 1
 
 
-def calculate_dynamic_stop_pct(range_history):
+def calculate_atr_stop_pct(range_history):
     valid_ranges = [value for value in range_history if value > 0]
-    if not valid_ranges:
+    if len(valid_ranges) < 14:
         return STOP_LOSS_PCT
-    avg_range_pct = sum(valid_ranges) / len(valid_ranges)
-    dynamic_stop_pct = max(STOP_LOSS_PCT, avg_range_pct * VOLATILITY_STOP_MULTIPLIER)
-    return max(MIN_DYNAMIC_STOP_LOSS_PCT, min(MAX_DYNAMIC_STOP_LOSS_PCT, dynamic_stop_pct))
+    # 14-period ATR approximation
+    atr_pct = sum(valid_ranges[-14:]) / 14
+    # Set stop at 2x ATR
+    atr_stop = atr_pct * 2.0 
+    return max(MIN_DYNAMIC_STOP_LOSS_PCT, min(MAX_DYNAMIC_STOP_LOSS_PCT, atr_stop))
 
 
 def calculate_take_profit_pct(stop_loss_pct):
@@ -84,13 +89,20 @@ def close_location_ok(bar, is_long):
 
 def update_state(states, bar):
     state = states.setdefault(bar["symbol"], {
+        "first_price": bar["open"],
         "cum_vol": 0,
         "cum_pv": 0,
         "vol_history": [],
         "range_history": [],
         "last_price": None,
         "last_bar_at": None,
+        "last_spike_at": None,
+        "last_spike_dir": None,
     })
+    if state["first_price"] > 0:
+        state["day_return"] = (bar["close"] - state["first_price"]) / state["first_price"]
+    else:
+        state["day_return"] = 0.0
     typical_price = (bar["high"] + bar["low"] + bar["close"]) / 3
     state["cum_vol"] += bar["volume"]
     state["cum_pv"] += typical_price * bar["volume"]
@@ -133,7 +145,7 @@ def run_replay(csv_path, assumed_spread_pct):
     }
 
     with open(csv_path, "r", encoding="utf-8") as f:
-        bars = [parse_row(row) for row in csv.DictReader(f)]
+        bars = [r for r in (parse_row(row) for row in csv.DictReader(f)) if r is not None]
 
     bars.sort(key=lambda bar: (bar["timestamp"], bar["symbol"]))
 
@@ -153,10 +165,42 @@ def run_replay(csv_path, assumed_spread_pct):
         vwap = state["cum_pv"] / state["cum_vol"] if state["cum_vol"] > 0 else bar["close"]
         avg_vol = sum(state["vol_history"][:-1]) / max(1, len(state["vol_history"][:-1]))
         current_vol = state["vol_history"][-1]
-        is_above_vwap = bar["close"] > (vwap * 1.002)
-        is_below_vwap = bar["close"] < (vwap * 0.998)
+        
+        # Check for spike
         is_volume_spike = len(state["vol_history"]) == 6 and current_vol > (avg_vol * 2) and current_vol > 10000
-        if not ((is_above_vwap or is_below_vwap) and is_volume_spike):
+        if is_volume_spike:
+            if bar["close"] > (vwap * 1.002):
+                state["last_spike_dir"] = "LONG"
+                state["last_spike_at"] = bar["timestamp"]
+            elif bar["close"] < (vwap * 0.998):
+                state["last_spike_dir"] = "SHORT"
+                state["last_spike_at"] = bar["timestamp"]
+            continue # Don't enter on the spike!
+            
+        # Check for pullback entry if we had a spike recently (within last 15 mins)
+        if not state.get("last_spike_at"):
+            continue
+            
+        time_since_spike = (bar["timestamp"] - state["last_spike_at"]).total_seconds() / 60.0
+        if time_since_spike > 15:
+            state["last_spike_dir"] = None # Expire spike
+            state["last_spike_at"] = None
+            continue
+            
+        # Pullback logic: Price touches VWAP on low volume
+        is_pullback = False
+        direction = state["last_spike_dir"]
+        is_above_vwap = False
+        is_below_vwap = False
+        
+        if direction == "LONG" and bar["low"] <= (vwap * 1.001) and bar["close"] >= vwap and current_vol < avg_vol:
+            is_pullback = True
+            is_above_vwap = True
+        elif direction == "SHORT" and bar["high"] >= (vwap * 0.999) and bar["close"] <= vwap and current_vol < avg_vol:
+            is_pullback = True
+            is_below_vwap = True
+            
+        if not is_pullback:
             continue
 
         symbol = bar["symbol"]
@@ -192,7 +236,18 @@ def run_replay(csv_path, assumed_spread_pct):
             reject(summary, symbol, "spy_regime_mismatch")
             continue
 
-        stop_loss_pct = calculate_dynamic_stop_pct(state["range_history"])
+        spy_state = states.get("SPY")
+        if spy_state and spy_state.get("first_price") is not None and spy_state["first_price"] > 0:
+            spy_return = (spy_state["last_price"] - spy_state["first_price"]) / spy_state["first_price"]
+            stock_return = state["day_return"]
+            if is_above_vwap and stock_return <= spy_return:
+                reject(summary, symbol, "poor_relative_strength")
+                continue
+            if is_below_vwap and stock_return >= spy_return:
+                reject(summary, symbol, "poor_relative_weakness")
+                continue
+
+        stop_loss_pct = calculate_atr_stop_pct(state["range_history"])
         take_profit_pct = calculate_take_profit_pct(stop_loss_pct)
         trade_counts[symbol] += 1
         summary["candidate_entries"] += 1
@@ -211,6 +266,9 @@ def run_replay(csv_path, assumed_spread_pct):
             "stop_loss_pct": stop_loss_pct,
             "take_profit_pct": take_profit_pct,
         })
+
+        state["last_spike_dir"] = None
+        state["last_spike_at"] = None
 
     summary["rejections_by_reason"] = dict(summary["rejections_by_reason"])
     summary["rejections_by_symbol"] = dict(summary["rejections_by_symbol"])
