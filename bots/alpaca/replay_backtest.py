@@ -25,7 +25,7 @@ MIN_DYNAMIC_STOP_LOSS_PCT = float(os.environ.get("MIN_DYNAMIC_STOP_LOSS_PCT", "0
 MAX_DYNAMIC_STOP_LOSS_PCT = float(os.environ.get("MAX_DYNAMIC_STOP_LOSS_PCT", "0.02"))
 TAKE_PROFIT_R_MULTIPLE = float(os.environ.get("TAKE_PROFIT_R_MULTIPLE", "2.0"))
 MAX_DYNAMIC_TAKE_PROFIT_PCT = float(os.environ.get("MAX_DYNAMIC_TAKE_PROFIT_PCT", "0.03"))
-MAX_TRADES_PER_SYMBOL_PER_DAY = int(os.environ.get("MAX_TRADES_PER_SYMBOL_PER_DAY", "3"))
+MAX_TRADES_PER_SYMBOL_PER_DAY = int(os.environ.get("MAX_TRADES_PER_SYMBOL_PER_DAY", "0"))
 
 
 def parse_timestamp(value):
@@ -163,7 +163,7 @@ def run_replay(csv_path, assumed_spread_pct):
         direction = "LONG" if is_above_vwap else "SHORT"
         summary["signals_detected"] += 1
 
-        if trade_counts[symbol] >= MAX_TRADES_PER_SYMBOL_PER_DAY:
+        if MAX_TRADES_PER_SYMBOL_PER_DAY > 0 and trade_counts[symbol] >= MAX_TRADES_PER_SYMBOL_PER_DAY:
             reject(summary, symbol, "max_symbol_trades")
             continue
 
