@@ -1232,7 +1232,7 @@ HFT_STOP_LOSS_PCT = float(os.environ.get("HFT_STOP_LOSS_PCT", "0.002"))   # 0.1%
 MAX_ORDERS_PER_MINUTE = 20
 order_timestamps = deque(maxlen=MAX_ORDERS_PER_MINUTE)
 
-def submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price, current_equity):
+def submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price):
         
     req = LimitOrderRequest(
         symbol=symbol,
@@ -1354,27 +1354,28 @@ async def evaluate_hft_entry(symbol, signal, price, quote):
     
     if signal == "LONG":
         limit_price = math.ceil(quote.ask_price * 1.0005 * 100) / 100
-        tp_price = round(quote.ask_price + min_clearance, 2)
-        sl_price = round(quote.ask_price - min_clearance, 2)
+        # Base TP/SL on limit_price to ensure valid bracket orders even with slippage
+        tp_price = round(limit_price + min_clearance, 2)
+        sl_price = round(limit_price - min_clearance, 2)
         side = OrderSide.BUY
     else:
         limit_price = math.floor(quote.bid_price * 0.9995 * 100) / 100
-        tp_price = round(quote.bid_price - min_clearance, 2)
-        sl_price = round(quote.bid_price + min_clearance, 2)
+        tp_price = round(limit_price - min_clearance, 2)
+        sl_price = round(limit_price + min_clearance, 2)
         side = OrderSide.SELL
 
-    if sl_price <= 0 or tp_price <= 0:
-        logger.info(f"Skipping {symbol} HFT signal - calculated SL/TP price is zero or negative.")
+    if sl_price <= 0 or tp_price <= 0 or limit_price <= 0:
+        logger.info(f"Skipping {symbol} HFT signal - calculated SL/TP/Limit price is zero or negative.")
         return
 
     with state_lock:
         pending_entries[symbol] = now
         pending_entry_values[symbol] = qty * limit_price
-        pending_entry_risks[symbol] = qty * min_clearance
+        pending_entry_risks[symbol] = qty * abs(limit_price - sl_price)
         
     def place_order():
         try:
-            success = submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price, current_equity)
+            success = submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price)
         except Exception as e:
             logger.error(f"Unhandled order placement error for {symbol} HFT: {e}")
             success = False
