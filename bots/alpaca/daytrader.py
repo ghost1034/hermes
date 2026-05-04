@@ -1335,6 +1335,10 @@ async def evaluate_hft_entry(symbol, signal, price, quote):
 
     # Marketable Limit: Limit price slightly worse than current quote to ensure fill, but cap slippage
     # Ensure quotes are valid and not crossed
+    if quote.ask_price is None or quote.bid_price is None or math.isnan(quote.ask_price) or math.isnan(quote.bid_price):
+        logger.info(f"Skipping {symbol} HFT signal - missing or NaN quotes.")
+        return
+
     if quote.ask_price <= 0 or quote.bid_price <= 0 or quote.ask_price < quote.bid_price:
         logger.info(f"Skipping {symbol} HFT signal - invalid or crossed quotes.")
         return
@@ -1349,15 +1353,19 @@ async def evaluate_hft_entry(symbol, signal, price, quote):
     min_clearance = max(spread * 3.0, 0.04) # Minimum 3x spread, floor of 4 cents
     
     if signal == "LONG":
-        limit_price = round(quote.ask_price * 1.0005, 2) 
-        tp_price = round(limit_price + min_clearance, 2)
-        sl_price = round(limit_price - min_clearance, 2)
+        limit_price = math.ceil(quote.ask_price * 1.0005 * 100) / 100
+        tp_price = round(quote.ask_price + min_clearance, 2)
+        sl_price = round(quote.ask_price - min_clearance, 2)
         side = OrderSide.BUY
     else:
-        limit_price = round(quote.bid_price * 0.9995, 2)
-        tp_price = round(limit_price - min_clearance, 2)
-        sl_price = round(limit_price + min_clearance, 2)
+        limit_price = math.floor(quote.bid_price * 0.9995 * 100) / 100
+        tp_price = round(quote.bid_price - min_clearance, 2)
+        sl_price = round(quote.bid_price + min_clearance, 2)
         side = OrderSide.SELL
+
+    if sl_price <= 0 or tp_price <= 0:
+        logger.info(f"Skipping {symbol} HFT signal - calculated SL/TP price is zero or negative.")
+        return
 
     with state_lock:
         pending_entries[symbol] = now
