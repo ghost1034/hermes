@@ -7,7 +7,9 @@ import urllib.request
 import json
 import random
 import traceback
+import requests
 from datetime import datetime, time as datetime_time, timedelta
+from collections import deque
 import pytz
 import logging
 
@@ -15,7 +17,7 @@ from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import LimitOrderRequest, TakeProfitRequest, StopLossRequest, GetOrdersRequest
 from alpaca.trading.enums import OrderSide, TimeInForce, OrderClass, QueryOrderStatus, OrderStatus, PositionSide
 from alpaca.data.live import StockDataStream
-from alpaca.data.models import Bar
+from alpaca.data.models import Bar, Trade, Quote
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
@@ -50,6 +52,7 @@ PAPER = True
 # Initialize Clients
 trading_client = TradingClient(API_KEY, API_SECRET, paper=PAPER)
 data_stream = StockDataStream(API_KEY, API_SECRET)
+historical_client = StockHistoricalDataClient(API_KEY, API_SECRET)
 
 # Trading Parameters
 MAX_DAILY_LOSS_PCT = 0.01
@@ -101,14 +104,16 @@ FLATTEN_TIME = datetime_time(15, 45)
 # Global State
 initial_equity = 0.0
 market_data_state = {}
+asset_shortable_cache = {}
 trading_halted_today = False
 current_trading_day = None
 
 # Thread safety lock for state mutated by both the websocket loop and the async loop
-state_lock = threading.Lock()
+state_lock = threading.RLock()
 observability_lock = threading.Lock()
 
 # New state for management
+micro_state = {}
 position_entry_times = {}
 position_hwm = {}
 runner_active = {}
@@ -513,78 +518,6 @@ def register_symbol_exit(symbol, reason="trade_completed"):
     increment_nested_observability_stat("exits_by_reason", reason)
     log_trade_event("symbol_exit_registered", symbol, reason=reason, cooldown_until=cooldown_until)
 
-def get_quote_spread_pct(symbol):
-    if StockLatestQuoteRequest is None:
-        raise RuntimeError("StockLatestQuoteRequest is unavailable in this Alpaca SDK version")
-
-    historical_client = StockHistoricalDataClient(API_KEY, API_SECRET)
-    quote_req = StockLatestQuoteRequest(symbol_or_symbols=[symbol])
-    quotes = historical_client.get_stock_latest_quote(quote_req)
-    quote = quotes.get(symbol) if hasattr(quotes, "get") else None
-    if quote is None:
-        raise RuntimeError("latest quote unavailable")
-
-    bid = safe_float(getattr(quote, "bid_price", None))
-    ask = safe_float(getattr(quote, "ask_price", None))
-    midpoint = (bid + ask) / 2
-    if bid <= 0 or ask <= 0 or midpoint <= 0 or ask < bid:
-        raise RuntimeError(f"invalid quote bid/ask ({bid}/{ask})")
-
-    return (ask - bid) / midpoint
-
-async def passes_spread_filter(symbol):
-    try:
-        spread_pct = await asyncio.to_thread(get_quote_spread_pct, symbol)
-    except Exception as e:
-        logger.info(f"Skipping {symbol} signal - spread check unavailable: {e}.")
-        log_signal_rejection(symbol, "spread_unavailable", error=str(e))
-        return False
-
-    if spread_pct > MAX_SPREAD_PCT:
-        logger.info(f"Skipping {symbol} signal - spread too wide ({spread_pct:.3%} > {MAX_SPREAD_PCT:.3%}).")
-        log_signal_rejection(symbol, "spread_too_wide", spread_pct=spread_pct, max_spread_pct=MAX_SPREAD_PCT)
-        return False
-    return True
-
-def passes_bar_quality_filter(bar, is_long):
-    bar_range = safe_float(bar.high) - safe_float(bar.low)
-    if bar_range <= 0 or safe_float(bar.close) <= 0:
-        logger.info(f"Skipping {bar.symbol} signal - invalid bar range.")
-        log_signal_rejection(bar.symbol, "invalid_bar_range", high=bar.high, low=bar.low, close=bar.close)
-        return False
-
-    bar_range_pct = bar_range / safe_float(bar.close)
-    if bar_range_pct > MAX_BAR_RANGE_PCT:
-        logger.info(f"Skipping {bar.symbol} signal - bar range too wide ({bar_range_pct:.2%} > {MAX_BAR_RANGE_PCT:.2%}).")
-        log_signal_rejection(bar.symbol, "bar_range_too_wide", bar_range_pct=bar_range_pct, max_bar_range_pct=MAX_BAR_RANGE_PCT)
-        return False
-
-    close_location = (safe_float(bar.close) - safe_float(bar.low)) / bar_range
-    if is_long and close_location < MIN_DIRECTIONAL_CLOSE_LOCATION:
-        logger.info(f"Skipping LONG setup on {bar.symbol} - close location too weak ({close_location:.2f}).")
-        log_signal_rejection(bar.symbol, "weak_directional_close", direction="LONG", close_location=close_location)
-        return False
-    if not is_long and close_location > (1 - MIN_DIRECTIONAL_CLOSE_LOCATION):
-        logger.info(f"Skipping SHORT setup on {bar.symbol} - close location too weak ({close_location:.2f}).")
-        log_signal_rejection(bar.symbol, "weak_directional_close", direction="SHORT", close_location=close_location)
-        return False
-
-    return True
-
-def calculate_atr_stop_pct(range_history):
-    if len(range_history) < 14:
-        return STOP_LOSS_PCT
-    # 14-period ATR approximation
-    atr_pct = sum(range_history[-14:]) / 14
-    # Set stop at 2x ATR
-    atr_stop = atr_pct * 2.0 
-    return max(MIN_DYNAMIC_STOP_LOSS_PCT, min(MAX_DYNAMIC_STOP_LOSS_PCT, atr_stop))
-
-def calculate_take_profit_pct(stop_loss_pct):
-    dynamic_take_profit_pct = stop_loss_pct * TAKE_PROFIT_R_MULTIPLE
-    dynamic_take_profit_pct = max(TAKE_PROFIT_PCT, dynamic_take_profit_pct)
-    return min(MAX_DYNAMIC_TAKE_PROFIT_PCT, dynamic_take_profit_pct)
-
 def normalize_enum_value(value):
     if value is None:
         return ""
@@ -774,7 +707,8 @@ def schedule_symbol_close(symbol):
 
 def daily_loss_breached(current_equity):
     if initial_equity <= 0:
-        return False
+        logger.error(f"initial_equity is {initial_equity} (<= 0). Halting trading out of an abundance of caution.")
+        return True
     return ((initial_equity - current_equity) / initial_equity) >= MAX_DAILY_LOSS_PCT
 
 def take_profit_filled_today(symbol, is_long, now, entry_time=None):
@@ -1021,42 +955,45 @@ def get_fresh_spy_regime(now=None):
     spy_vwap = spy_cum_pv / spy_cum_vol
     return spy_price, spy_vwap, spy_price > spy_vwap, None
 
-def get_top_50_active_symbols():
-    url = "https://data.alpaca.markets/v1beta1/screener/stocks/most-actives?by=volume&top=100"
+def get_dynamic_watchlist(api_key, api_secret, target_count=14, min_price=10.0):
     headers = {
-        "APCA-API-KEY-ID": API_KEY, 
-        "APCA-API-SECRET-KEY": API_SECRET, 
-        "accept": "application/json"
+        "APCA-API-KEY-ID": api_key,
+        "APCA-API-SECRET-KEY": api_secret
     }
-    req = urllib.request.Request(url, headers=headers)
+    url_active = "https://data.alpaca.markets/v1beta1/screener/stocks/most-actives?by=volume&top=100"
     try:
-        logger.info("Fetching top 150 active stocks by volume from Alpaca Screener API to filter for price...")
-        with urllib.request.urlopen(req, timeout=10) as response:
-            data = json.loads(response.read().decode('utf-8'))
-            candidate_symbols = [item['symbol'] for item in data.get('most_actives', [])]
-            
-            # Batch fetch prices to filter out penny stocks
-            historical_client = StockHistoricalDataClient(API_KEY, API_SECRET)
-            from alpaca.data.requests import StockLatestTradeRequest
-            trade_req = StockLatestTradeRequest(symbol_or_symbols=candidate_symbols)
-            latest_trades = historical_client.get_stock_latest_trade(trade_req)
-            
-            filtered_symbols = []
-            for sym in candidate_symbols:
-                if sym in latest_trades:
-                    price = latest_trades[sym].price
-                    if price >= MIN_STOCK_PRICE:
-                        filtered_symbols.append(sym)
-                
-                if len(filtered_symbols) == 50:
-                    break
-                    
-            logger.info(f"Filtered watchlist down to {len(filtered_symbols)} non-penny stocks (>= ${MIN_STOCK_PRICE:.2f}).")
-            return filtered_symbols
+        res = requests.get(url_active, headers=headers, timeout=10)
+        res.raise_for_status()
+        active_symbols = [item["symbol"] for item in res.json().get("most_actives", [])]
     except Exception as e:
-        logger.error(f"Error fetching/filtering most actives: {e}")
-        # Fallback watchlist if api fails
-        return ["AAPL", "MSFT", "NVDA", "META", "AMZN", "TSLA", "AMD", "SMCI", "COIN"]
+        logger.error(f"Failed to fetch most active symbols: {e}")
+        return ["SPY", "QQQ", "IWM", "DIA"]
+        
+    if not active_symbols:
+        return ["SPY", "QQQ"]
+        
+    chunk_str = ",".join(active_symbols)
+    url_snapshots = f"https://data.alpaca.markets/v2/stocks/snapshots?symbols={chunk_str}"
+    
+    valid_symbols = []
+    try:
+        snap_res = requests.get(url_snapshots, headers=headers, timeout=10)
+        snap_res.raise_for_status()
+        snapshots = snap_res.json()
+        
+        for sym in active_symbols:
+            data = snapshots.get(sym)
+            if data and data.get("latestTrade"):
+                price = data["latestTrade"].get("p", 0.0)
+                if price >= min_price:
+                    valid_symbols.append(sym)
+                    if len(valid_symbols) == target_count:
+                        break
+    except Exception as e:
+        logger.error(f"Failed to fetch snapshots: {e}")
+        return active_symbols[:target_count]
+        
+    return valid_symbols
 
 def reset_daily_state(current_equity):
     global initial_equity, market_data_state, trading_halted_today, current_trading_day
@@ -1148,36 +1085,6 @@ def cleanup_trade_state_after_order_snapshot(stock_positions, all_pending_orders
 
     return closed_symbols_for_cooldown
 
-def calculate_intelligent_size(current_vol, avg_vol, current_time, spy_price, spy_vwap, is_long=True):
-    # 1. Volume Intensity (Linear between 2x and 5x)
-    vol_ratio = current_vol / max(1, avg_vol)
-    
-    if vol_ratio <= 2.0:
-        base_size = 0.05
-    elif vol_ratio >= 5.0:
-        base_size = 0.15
-    else:
-        base_size = 0.05 + ((vol_ratio - 2.0) / 3.0) * 0.10
-        
-    # 2. Market Regime Alignment
-    if spy_price and spy_vwap:
-        is_bullish = spy_price > spy_vwap
-        if is_long and is_bullish:
-            base_size += 0.015
-        elif not is_long and not is_bullish:
-            base_size += 0.015
-        else:
-            base_size -= 0.015
-            
-    # 3. Time of Day Weighting
-    if datetime_time(10, 0) <= current_time < datetime_time(11, 0):
-        base_size += 0.01
-    elif datetime_time(11, 0) <= current_time < datetime_time(14, 0):
-        base_size -= 0.01
-        
-    # Clamp between min and max bounds
-    return max(POSITION_SIZE_MIN_PCT, min(POSITION_SIZE_MAX_PCT, base_size))
-
 def submit_bracket_order(symbol, current_price, target_size_pct, stop_loss_pct=STOP_LOSS_PCT, take_profit_pct=TAKE_PROFIT_PCT, is_long=True):
     global trading_halted_today
     account = trading_client.get_account()
@@ -1194,6 +1101,10 @@ def submit_bracket_order(symbol, current_price, target_size_pct, stop_loss_pct=S
     if target_value > available_buying_power:
         logger.info(f"Capping order size to avoid margin issues. Target: ${target_value:.2f}, Buying Power: ${available_buying_power:.2f}")
         target_value = available_buying_power
+        
+    if current_price <= 0:
+        logger.warning(f"Invalid price for {symbol}: {current_price}. Aborting order.")
+        return False
         
     qty = int(target_value / current_price)
     
@@ -1312,230 +1223,221 @@ def submit_bracket_order(symbol, current_price, target_size_pct, stop_loss_pct=S
         log_trade_event("entry_failed", symbol, reason="submit_exception", error=str(e))
         return False
 
-async def handle_bar(bar: Bar):
-    global trading_halted_today
-    symbol = bar.symbol
-    current_time = get_current_ny_time()
+HFT_MIN_BURST_VOLUME = int(os.environ.get("HFT_MIN_BURST_VOLUME", "5000"))
+HFT_IMBALANCE_THRESHOLD = float(os.environ.get("HFT_IMBALANCE_THRESHOLD", "0.80"))
+HFT_TAKE_PROFIT_PCT = float(os.environ.get("HFT_TAKE_PROFIT_PCT", "0.002")) # 0.2%
+HFT_STOP_LOSS_PCT = float(os.environ.get("HFT_STOP_LOSS_PCT", "0.002"))   # 0.1%
 
-    with state_lock:
-        if symbol not in market_data_state:
-            market_data_state[symbol] = {
-                "first_price": bar.open,
-                "cum_vol": 0,
-                "cum_pv": 0,
-                "vol_history": [],
-                "range_history": [],
-                "last_price": None,
-                "last_bar_at": None,
-                "last_spike_at": None,
-                "last_spike_dir": None,
-                "last_spike_avg_vol": None,
-            }
-            
-        state = market_data_state[symbol]
+MAX_ORDERS_PER_MINUTE = 20
+order_timestamps = deque(maxlen=MAX_ORDERS_PER_MINUTE)
+
+def submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price, current_equity):
         
-        if state.get("first_price", 0) > 0:
-            state["day_return"] = (bar.close - state["first_price"]) / state["first_price"]
-        else:
-            state["day_return"] = 0.0
-        
-        typical_price = (bar.high + bar.low + bar.close) / 3
-        state["cum_vol"] += bar.volume
-        state["last_price"] = bar.close
-        state["last_bar_at"] = get_bar_timestamp(bar)
-        state["cum_pv"] += typical_price * bar.volume
-        
-        vwap = state["cum_pv"] / state["cum_vol"] if state["cum_vol"] > 0 else bar.close
-        
-        state["vol_history"].append(bar.volume)
-        if len(state["vol_history"]) > 6:
-            state["vol_history"].pop(0)
-        bar_range_pct = ((bar.high - bar.low) / bar.close) if bar.close > 0 else 0
-        state["range_history"].append(bar_range_pct)
-        if len(state["range_history"]) > 15:
-            state["range_history"].pop(0)
-        range_history = list(state["range_history"])
-             
-        avg_vol = sum(state["vol_history"][:-1]) / max(1, len(state["vol_history"][:-1]))
-        current_vol = state["vol_history"][-1]
-        vol_history_len = len(state["vol_history"])
-        halted = trading_halted_today
-
-    if halted or not (START_TIME <= current_time < STOP_ENTRIES_TIME):
-        return
-
-    if symbol == "SPY":
-        return
-
-    is_volume_spike = vol_history_len == 6 and current_vol > (avg_vol * 2) and current_vol > 10000
-    if is_volume_spike:
-        with state_lock:
-            if bar.close > (vwap * 1.002):
-                state["last_spike_dir"] = "LONG"
-                state["last_spike_at"] = state["last_bar_at"]
-                state["last_spike_avg_vol"] = avg_vol
-            elif bar.close < (vwap * 0.998):
-                state["last_spike_dir"] = "SHORT"
-                state["last_spike_at"] = state["last_bar_at"]
-                state["last_spike_avg_vol"] = avg_vol
-        return
-
-    with state_lock:
-        last_spike_at = state.get("last_spike_at")
-        last_spike_dir = state.get("last_spike_dir")
-        last_spike_avg_vol = state.get("last_spike_avg_vol")
-        last_bar_at = state.get("last_bar_at")
-
-    if not last_spike_at or not last_bar_at:
-        return
-
-    time_since_spike = (last_bar_at - last_spike_at).total_seconds() / 60.0
-    if time_since_spike > 15:
-        with state_lock:
-            state["last_spike_dir"] = None
-            state["last_spike_at"] = None
-            state["last_spike_avg_vol"] = None
-        return
-
-    is_pullback = False
-    is_above_vwap = False
-    is_below_vwap = False
-
-    target_avg_vol = last_spike_avg_vol if last_spike_avg_vol is not None else avg_vol
-
-    if last_spike_dir == "LONG" and bar.low <= (vwap * 1.001) and bar.close >= vwap and current_vol < target_avg_vol:
-        is_pullback = True
-        is_above_vwap = True
-    elif last_spike_dir == "SHORT" and bar.high >= (vwap * 0.999) and bar.close <= vwap and current_vol < target_avg_vol:
-        is_pullback = True
-        is_below_vwap = True
-
-    if not is_pullback:
-        return
-
-    direction = "LONG" if is_above_vwap else "SHORT"
-    vol_ratio = current_vol / max(1, avg_vol)
-    increment_observability_stat("signals_detected")
-    log_trade_event(
-            "signal_detected",
-            symbol,
-            direction=direction,
-            price=bar.close,
-            vwap=vwap,
-            current_vol=current_vol,
-            avg_vol=avg_vol,
-            vol_ratio=vol_ratio,
-            bar_high=bar.high,
-            bar_low=bar.low,
-            bar_close=bar.close
-        )
-
-    if not is_symbol_trade_allowed(symbol):
-        return
-
-    dollar_volume = current_vol * bar.close
-    if dollar_volume < MIN_DOLLAR_VOLUME_1M:
-        logger.info(f"Skipping {symbol} signal - 1m dollar volume too low (${dollar_volume:,.0f} < ${MIN_DOLLAR_VOLUME_1M:,.0f}).")
-        log_signal_rejection(symbol, "dollar_volume_too_low", dollar_volume=dollar_volume, min_dollar_volume=MIN_DOLLAR_VOLUME_1M)
-        return
-
-    if not passes_bar_quality_filter(bar, is_above_vwap):
-        return
-
-    if not await passes_spread_filter(symbol):
-        return
-
-    stop_loss_pct = calculate_atr_stop_pct(range_history)
-    take_profit_pct = calculate_take_profit_pct(stop_loss_pct)
-    
-    if direction == "SHORT":
-        try:
-            asset = await asyncio.to_thread(trading_client.get_asset, symbol)
-            if not asset.shortable or not asset.easy_to_borrow:
-                logger.info(f"Skipping short signal for {symbol} - not shortable or not easy to borrow.")
-                log_signal_rejection(symbol, "not_shortable", shortable=getattr(asset, "shortable", None), easy_to_borrow=getattr(asset, "easy_to_borrow", None))
-                return
-        except Exception as e:
-            logger.error(f"Error checking shortability for {symbol}: {e}")
-            log_signal_rejection(symbol, "shortability_check_failed", error=str(e))
-            return
-
-    logger.info(f"*** {direction} SIGNAL TRIGGERED for {symbol} *** (Price: {bar.close}, VWAP: {vwap:.2f}, Vol: {current_vol})")
-    spy_price, spy_vwap, spy_is_bullish, spy_regime_error = get_fresh_spy_regime()
-    if spy_regime_error:
-        logger.info(f"Skipping {symbol} setup - SPY regime unavailable: {spy_regime_error}.")
-        log_signal_rejection(symbol, "spy_regime_unavailable", spy_regime_error=spy_regime_error)
-        send_rate_limited_alert("spy_regime_unavailable", f"Alpaca bot is skipping entries because SPY regime data is unavailable: {spy_regime_error}")
-        return
-        
-    with state_lock:
-        spy_state = market_data_state.get("SPY")
-        spy_first_price = spy_state.get("first_price", 0) if spy_state else 0
-        spy_last_price = spy_state.get("last_price") if spy_state else None
-        stock_return = state.get("day_return", 0.0)
-
-    if spy_first_price > 0 and spy_last_price is not None:
-        spy_return = (spy_last_price - spy_first_price) / spy_first_price
-        if is_above_vwap and stock_return <= spy_return:
-            logger.info(f"Skipping LONG setup on {symbol} due to poor relative strength compared to SPY.")
-            log_signal_rejection(symbol, "poor_relative_strength", spy_return=spy_return, stock_return=stock_return)
-            return
-        if not is_above_vwap and stock_return >= spy_return:
-            logger.info(f"Skipping SHORT setup on {symbol} due to poor relative weakness compared to SPY.")
-            log_signal_rejection(symbol, "poor_relative_weakness", spy_return=spy_return, stock_return=stock_return)
-            return
-    
-    target_size_pct = calculate_intelligent_size(current_vol, avg_vol, current_time, spy_price, spy_vwap, is_long=is_above_vwap)
-    
-    # Hard Regime Filter: Do not take counter-trend entries.
-    if is_above_vwap and not spy_is_bullish:
-        logger.info(f"Skipping LONG setup on {symbol} due to bearish SPY regime.")
-        log_signal_rejection(symbol, "spy_regime_mismatch", direction="LONG", spy_price=spy_price, spy_vwap=spy_vwap)
-        return
-    if not is_above_vwap and spy_is_bullish:
-        logger.info(f"Skipping SHORT setup on {symbol} due to bullish SPY regime.")
-        log_signal_rejection(symbol, "spy_regime_mismatch", direction="SHORT", spy_price=spy_price, spy_vwap=spy_vwap)
-        return
-
-    logger.info(f"Intelligent sizing calculated for {symbol}: {target_size_pct:.2%}")
-    logger.info(f"Dynamic exits for {symbol}: SL {stop_loss_pct:.2%}, TP {take_profit_pct:.2%}")
-
-    if not await reserve_symbol_for_entry(symbol, target_size_pct, bar.close, stop_loss_pct):
-        return
-    log_trade_event(
-        "entry_reserved",
-        symbol,
-        direction=direction,
-        target_size_pct=target_size_pct,
-        stop_loss_pct=stop_loss_pct,
-        take_profit_pct=take_profit_pct,
-        intended_risk=estimate_entry_stop_risk(initial_equity * target_size_pct, bar.close, stop_loss_pct),
-        spy_price=spy_price,
-        spy_vwap=spy_vwap,
-        vol_ratio=vol_ratio,
-        dollar_volume=dollar_volume
+    req = LimitOrderRequest(
+        symbol=symbol,
+        qty=qty,
+        side=side,
+        limit_price=limit_price,
+        time_in_force=TimeInForce.DAY,
+        order_class=OrderClass.BRACKET,
+        take_profit=TakeProfitRequest(limit_price=tp_price),
+        stop_loss=StopLossRequest(stop_price=sl_price)
     )
+
+    try:
+        order = trading_client.submit_order(order_data=req)
+        if not is_order_accepted(order):
+            logger.error(f"HFT entry order for {symbol} was not accepted: {order}")
+            increment_observability_stat("entries_failed")
+            log_trade_event("hft_entry_failed", symbol, reason="order_not_accepted", order=order)
+            return False
+            
+        increment_observability_stat("entries_submitted")
+        with state_lock:
+            position_entry_times[symbol] = datetime.now(TIMEZONE)
+            
+        return True
+    except Exception as e:
+        logger.error(f"Error submitting HFT order for {symbol}: {e}")
+        increment_observability_stat("entries_failed")
+        log_trade_event("hft_entry_failed", symbol, reason="submit_exception", error=str(e))
+        return False
+
+async def evaluate_hft_entry(symbol, signal, price, quote):
+    now = datetime.now(TIMEZONE)
+    with state_lock:
+        # Check API spam limits
+        if len(order_timestamps) == MAX_ORDERS_PER_MINUTE:
+            if (now - order_timestamps[0]).total_seconds() < 60:
+                logger.info(f"Skipping HFT SIGNAL for {symbol} - rate limited.")
+                return # Rate limited
+                
+        # Existing checks (e.g. max exposure, daily limits, symbol cooldowns)
+        if not is_symbol_trade_allowed(symbol, now):
+            return
+            
+        if symbol in pending_entries:
+            logger.info(f"Skipping HFT {symbol} signal - entry already pending.")
+            return
+
+        # Temporarily lock symbol to prevent duplicate firing on the same tick burst
+        symbol_cooldowns[symbol] = now + timedelta(seconds=15)
+        order_timestamps.append(now)
+        
+    logger.info(f"HFT SIGNAL: {signal} {symbol} at {price}")
     
+    try:
+        positions, symbol_open_orders = await asyncio.gather(
+            asyncio.to_thread(trading_client.get_all_positions),
+            asyncio.to_thread(trading_client.get_orders, GetOrdersRequest(status=QueryOrderStatus.OPEN, symbols=[symbol]))
+        )
+    except Exception as e:
+        logger.error(f"Error checking existing exposure for {symbol} HFT: {e}")
+        return
+
+    has_position = any(p.symbol == symbol for p in positions)
+    if has_position or symbol_open_orders:
+        logger.info(f"Skipping {symbol} HFT signal - existing position or open order found.")
+        return
+        
+    stock_positions = [p for p in positions if is_stock_position(p)]
+    if len(stock_positions) + current_pending_entry_count() >= MAX_OPEN_POSITIONS:
+        logger.info(f"Skipping {symbol} HFT signal - max open positions reached.")
+        return
+
+    if signal == "SHORT":
+        if not asset_shortable_cache.get(symbol, False):
+            logger.info(f"Skipping HFT short signal for {symbol} - not shortable or not easy to borrow.")
+            return
+    
+    # Calculate position size
+    try:
+        account = await asyncio.to_thread(trading_client.get_account)
+    except Exception as e:
+        logger.error(f"Error checking account for {symbol} HFT: {e}")
+        return
+        
+    current_equity = float(account.equity)
+    if daily_loss_breached(current_equity):
+        set_trading_halted(True, "daily_loss")
+        logger.error(f"Aborting {symbol} HFT order - daily loss limit already breached.")
+        return
+    target_value = current_equity * POSITION_SIZE_MIN_PCT
+    available_buying_power = float(account.daytrading_buying_power) if float(account.daytrading_buying_power) > 0 else float(account.buying_power)
+    
+    if target_value > available_buying_power:
+        target_value = available_buying_power
+        
+    qty = int(target_value / price)
+    if qty <= 0:
+        return
+
+    # Marketable Limit: Limit price slightly worse than current quote to ensure fill, but cap slippage
+    spread = quote.ask_price - quote.bid_price
+    min_clearance = max(spread * 3.0, 0.04) # Minimum 3x spread, floor of 4 cents
+    
+    if signal == "LONG":
+        limit_price = round(quote.ask_price * 1.0005, 2) 
+        tp_price = round(limit_price + min_clearance, 2)
+        sl_price = round(limit_price - min_clearance, 2)
+        side = OrderSide.BUY
+    else:
+        limit_price = round(quote.bid_price * 0.9995, 2)
+        tp_price = round(limit_price - min_clearance, 2)
+        sl_price = round(limit_price + min_clearance, 2)
+        side = OrderSide.SELL
+
+    with state_lock:
+        pending_entries[symbol] = now
+        pending_entry_values[symbol] = qty * limit_price
+        pending_entry_risks[symbol] = qty * min_clearance
+        
     def place_order():
         try:
-            success = submit_bracket_order(
-                symbol,
-                bar.close,
-                target_size_pct,
-                stop_loss_pct=stop_loss_pct,
-                take_profit_pct=take_profit_pct,
-                is_long=is_above_vwap
-            )
+            success = submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price, current_equity)
         except Exception as e:
-            logger.error(f"Unhandled order placement error for {symbol}: {e}")
-            increment_observability_stat("entries_failed")
-            log_trade_event("entry_failed", symbol, reason="place_order_exception", error=str(e))
+            logger.error(f"Unhandled order placement error for {symbol} HFT: {e}")
             success = False
         if not success:
             release_entry_reservation(symbol)
 
-    # Dispatch in background task to avoid blocking the websocket message pump
-    create_background_task(asyncio.to_thread(place_order), f"place order {symbol}")
+    # We use place_order in a background thread to prevent blocking
+    asyncio.create_task(asyncio.to_thread(place_order))
+
+async def handle_trade(trade: Trade):
+    with state_lock:
+        state = micro_state.setdefault(trade.symbol, {
+            "latest_quote": None,
+            "recent_trades": deque(),
+            "buy_vol_10s": 0.0,
+            "sell_vol_10s": 0.0
+        })
+        
+        # Determine trade direction based on latest quote
+        direction = "UNKNOWN"
+        quote = state["latest_quote"]
+        if quote:
+            if trade.price >= quote.ask_price:
+                direction = "BUY"
+            elif trade.price <= quote.bid_price:
+                direction = "SELL"
+                
+        state["recent_trades"].append({
+            "timestamp": trade.timestamp,
+            "price": trade.price,
+            "size": trade.size,
+            "direction": direction
+        })
+        
+        if direction == "BUY":
+            state["buy_vol_10s"] += trade.size
+        elif direction == "SELL":
+            state["sell_vol_10s"] += trade.size
+        
+        # Prune trades older than 10 seconds
+        cutoff = trade.timestamp - timedelta(seconds=10)
+        while state["recent_trades"] and state["recent_trades"][0]["timestamp"] < cutoff:
+            popped = state["recent_trades"].popleft()
+            if popped["direction"] == "BUY":
+                state["buy_vol_10s"] -= popped["size"]
+            elif popped["direction"] == "SELL":
+                state["sell_vol_10s"] -= popped["size"]
+
+        # Prevent negative volumes due to floating point inaccuracies
+        state["buy_vol_10s"] = max(0.0, state["buy_vol_10s"])
+        state["sell_vol_10s"] = max(0.0, state["sell_vol_10s"])
+
+        buy_vol = state["buy_vol_10s"]
+        sell_vol = state["sell_vol_10s"]
+        total_vol = buy_vol + sell_vol
+        
+        if total_vol >= HFT_MIN_BURST_VOLUME:
+            buy_ratio = buy_vol / total_vol if total_vol > 0 else 0
+            sell_ratio = sell_vol / total_vol if total_vol > 0 else 0
+            
+            signal = None
+            if buy_ratio >= HFT_IMBALANCE_THRESHOLD:
+                signal = "LONG"
+            elif sell_ratio >= HFT_IMBALANCE_THRESHOLD:
+                signal = "SHORT"
+                
+            if signal:
+                quote = state["latest_quote"]
+                if quote is None:
+                    logger.warning(f"Skipping HFT SIGNAL for {trade.symbol} - no recent quote available.")
+                    return
+                # Need to use asyncio to not block the stream thread, or call directly if we know it's safe.
+                asyncio.create_task(evaluate_hft_entry(trade.symbol, signal, trade.price, quote))
+
+async def handle_quote(quote: Quote):
+    with state_lock:
+        state = micro_state.setdefault(quote.symbol, {
+            "latest_quote": None,
+            "recent_trades": deque(),
+            "buy_vol_10s": 0.0,
+            "sell_vol_10s": 0.0
+        })
+        state["latest_quote"] = quote
 
 async def risk_manager():
     global initial_equity, trading_halted_today, current_trading_day
@@ -1762,73 +1664,29 @@ async def main():
     initialize_daily_state(float(account.equity))
     logger.info(f"Starting High-Volume Day Trading Bot. Initial Equity: ${initial_equity}")
 
-    # Dynamic Pre-Market Scan
-    dynamic_watchlist = get_top_50_active_symbols()
-    if not dynamic_watchlist:
-        logger.error("Failed to fetch dynamic watchlist. Exiting.")
-        return
+    logger.info("Fetching dynamic watchlist of top movers > $10...")
+    dynamic_watchlist = get_dynamic_watchlist(API_KEY, API_SECRET, target_count=14, min_price=10.0)
+    
     if "SPY" not in dynamic_watchlist:
         dynamic_watchlist.append("SPY")
-
-    # --- DATA PRIMER LOGIC ---
-    try:
-        logger.info("Running Data Primer: Fetching today's 1-Min bars to prime VWAP state...")
-        historical_client = StockHistoricalDataClient(API_KEY, API_SECRET)
-        now_tz = datetime.now(TIMEZONE)
-        start_time = now_tz.replace(hour=9, minute=30, second=0, microsecond=0)
         
-        if now_tz > start_time:
-            req = StockBarsRequest(
-                symbol_or_symbols=dynamic_watchlist,
-                timeframe=TimeFrame.Minute,
-                start=start_time,
-                end=now_tz,
-                feed="iex"
-            )
-            bars = await asyncio.to_thread(historical_client.get_stock_bars, req)
-            
-            if bars and bars.data:
-                for sym, sym_bars in bars.data.items():
-                    if sym not in market_data_state:
-                        market_data_state[sym] = {
-                            "first_price": sym_bars[0].open if sym_bars else 0.0,
-                            "cum_vol": 0,
-                            "cum_pv": 0,
-                            "vol_history": [],
-                            "range_history": [],
-                            "last_price": None,
-                            "last_bar_at": None,
-                            "last_spike_at": None,
-                            "last_spike_dir": None,
-                            "last_spike_avg_vol": None,
-                        }
-                    state = market_data_state[sym]
-                    for b in sym_bars:
-                        if state.get("first_price", 0) > 0:
-                            state["day_return"] = (b.close - state["first_price"]) / state["first_price"]
-                        else:
-                            state["day_return"] = 0.0
-                        typical_price = (b.high + b.low + b.close) / 3
-                        state["cum_vol"] += b.volume
-                        state["cum_pv"] += typical_price * b.volume
-                        state["last_price"] = b.close
-                        state["last_bar_at"] = get_bar_timestamp(b)
-                        state["vol_history"].append(b.volume)
-                        if len(state["vol_history"]) > 6:
-                            state["vol_history"].pop(0)
-                        bar_range_pct = ((b.high - b.low) / b.close) if b.close > 0 else 0
-                        state["range_history"].append(bar_range_pct)
-                        if len(state["range_history"]) > 15:
-                            state["range_history"].pop(0)
-                logger.info(f"Data Primer complete. Primed {len(market_data_state)} symbols.")
-        else:
-            logger.info("Before 9:30 AM ET. Skipping Data Primer.")
-    except Exception as e:
-        logger.error(f"Data Primer failed: {e}")
-    # --- END DATA PRIMER ---
+    logger.info(f"Dynamic Watchlist Generated: {len(dynamic_watchlist)} symbols. {dynamic_watchlist[:5]}...")
 
-    logger.info(f"Subscribing to {len(dynamic_watchlist)} most active symbols: {dynamic_watchlist[:5]}...")
-    data_stream.subscribe_bars(handle_bar, *dynamic_watchlist)
+    try:
+        logger.info("Building shortable asset cache...")
+        from alpaca.trading.requests import GetAssetsRequest
+        from alpaca.trading.enums import AssetClass
+        req = GetAssetsRequest(asset_class=AssetClass.US_EQUITY)
+        assets = await asyncio.to_thread(trading_client.get_all_assets, req)
+        for asset in assets:
+            if asset.tradable:
+                asset_shortable_cache[asset.symbol] = asset.shortable and asset.easy_to_borrow
+        logger.info(f"Cached shortable status for {len(asset_shortable_cache)} assets.")
+    except Exception as e:
+        logger.error(f"Failed to build shortable asset cache: {e}")
+
+    data_stream.subscribe_trades(handle_trade, *dynamic_watchlist)
+    data_stream.subscribe_quotes(handle_quote, *dynamic_watchlist)
     
     asyncio.create_task(risk_manager())
     
