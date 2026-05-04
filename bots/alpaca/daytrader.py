@@ -7,6 +7,7 @@ import urllib.request
 import json
 import random
 import traceback
+import math
 import requests
 from datetime import datetime, time as datetime_time, timedelta
 from collections import deque
@@ -1333,7 +1334,18 @@ async def evaluate_hft_entry(symbol, signal, price, quote):
         return
 
     # Marketable Limit: Limit price slightly worse than current quote to ensure fill, but cap slippage
+    # Ensure quotes are valid and not crossed
+    if quote.ask_price <= 0 or quote.bid_price <= 0 or quote.ask_price < quote.bid_price:
+        logger.info(f"Skipping {symbol} HFT signal - invalid or crossed quotes.")
+        return
+        
     spread = quote.ask_price - quote.bid_price
+    midpoint = (quote.ask_price + quote.bid_price) / 2
+    spread_pct = spread / midpoint if midpoint > 0 else 0
+    
+    if spread_pct > MAX_SPREAD_PCT:
+        logger.info(f"Skipping {symbol} HFT signal - spread too wide ({spread_pct:.3%} > {MAX_SPREAD_PCT:.3%}).")
+        return
     min_clearance = max(spread * 3.0, 0.04) # Minimum 3x spread, floor of 4 cents
     
     if signal == "LONG":
