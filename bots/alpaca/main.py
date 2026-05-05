@@ -10,15 +10,43 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import alpaca_trade_api as alpaca
 from indicator import *
 from config_params import *
 
 # Files
-key = json.loads(open('AUTH/authAlpaca.txt', 'r').read())
-api = alpaca.REST(key['APCA-API-KEY-ID'], key['APCA-API-SECRET-KEY'], base_url= key['BASE-URL'], api_version = 'v2')
-tickers = open('AUTH/Tickers.txt', 'r').read() # Tickers
-tickers = tickers.split()
+
+
+def load_alpaca_auth(path='AUTH/authAlpaca.txt'):
+    return json.loads(open(path, 'r').read())
+
+
+def create_alpaca_api(auth=None):
+    import alpaca_trade_api as alpaca
+
+    key = auth if auth is not None else load_alpaca_auth()
+    return alpaca.REST(
+        key['APCA-API-KEY-ID'],
+        key['APCA-API-SECRET-KEY'],
+        base_url=key['BASE-URL'],
+        api_version='v2'
+    )
+
+
+class LazyAlpacaAPI:
+    def __init__(self):
+        self._client = None
+
+    def client(self):
+        if self._client is None:
+            self._client = create_alpaca_api()
+        return self._client
+
+    def __getattr__(self, name):
+        return getattr(self.client(), name)
+
+
+api = LazyAlpacaAPI()
+tickers = []
 
 ORDERS_DIR = 'ORDERS'
 ORDERS_FILE = os.path.join(ORDERS_DIR, 'Orders.csv')
@@ -73,7 +101,113 @@ def read_csv(path, columns):
 
 
 def normalize_symbol(symbol):
+    if symbol is None:
+        return ''
     return str(symbol).upper().strip()
+
+
+def dedupe_symbols(symbols):
+    seen = set()
+    normalized_symbols = []
+    for symbol in symbols:
+        normalized = normalize_symbol(symbol)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        normalized_symbols.append(normalized)
+    return normalized_symbols
+
+
+def chunked(items, chunk_size):
+    for i in range(0, len(items), chunk_size):
+        yield items[i:i + chunk_size]
+
+
+def read_static_tickers():
+    try:
+        with open('AUTH/Tickers.txt', 'r') as ticker_file:
+            return dedupe_symbols(ticker_file.read().split())
+    except Exception as e:
+        print('Error reading AUTH/Tickers.txt:', e)
+        return []
+
+
+def price_passes_dynamic_filter(price):
+    if price is None:
+        return True
+    try:
+        price = float(price)
+    except Exception:
+        return False
+    if dynamic_tickers_min_price is not None and price < dynamic_tickers_min_price:
+        return False
+    if dynamic_tickers_max_price is not None and price > dynamic_tickers_max_price:
+        return False
+    return True
+
+
+def get_tradable_equity_symbols():
+    try:
+        assets = api.list_assets(status='active', asset_class='us_equity')
+    except Exception as e:
+        print('Error fetching Alpaca tradable assets; using screener symbols without asset filtering:', e)
+        return None
+
+    tradable_symbols = set()
+    for asset in assets:
+        if getattr(asset, 'tradable', False):
+            tradable_symbols.add(normalize_symbol(asset.symbol))
+    return tradable_symbols
+
+
+def get_dynamic_mover_tickers():
+    response = api.data_get(
+        '/screener/stocks/movers',
+        data={'top': dynamic_tickers_top_per_side},
+        api_version='v1beta1'
+    )
+    tradable_symbols = get_tradable_equity_symbols()
+    movers = []
+    if dynamic_tickers_include_gainers:
+        movers.extend(response.get('gainers', []))
+    if dynamic_tickers_include_losers:
+        movers.extend(response.get('losers', []))
+
+    selected_symbols = []
+    for mover in movers:
+        symbol = normalize_symbol(mover.get('symbol'))
+        if not symbol:
+            continue
+        if tradable_symbols is not None and symbol not in tradable_symbols:
+            continue
+        if not price_passes_dynamic_filter(mover.get('price')):
+            continue
+        selected_symbols.append(symbol)
+
+    selected_symbols = dedupe_symbols(selected_symbols)
+    print('Loaded {} dynamic tickers from Alpaca market movers updated at {}'.format(
+        len(selected_symbols), response.get('last_updated', 'unknown time')
+    ))
+    print('Dynamic tickers:', selected_symbols)
+    return selected_symbols
+
+
+def load_tickers():
+    fallback_tickers = read_static_tickers()
+    if not dynamic_tickers_enabled:
+        print('Dynamic tickers disabled; using static tickers:', fallback_tickers)
+        return fallback_tickers
+
+    try:
+        dynamic_symbols = get_dynamic_mover_tickers()
+    except Exception as e:
+        print('Error fetching Alpaca market movers; using static fallback tickers:', e)
+        return fallback_tickers
+
+    if not dynamic_symbols:
+        print('No dynamic tickers returned; using static fallback tickers:', fallback_tickers)
+        return fallback_tickers
+    return dynamic_symbols
 
 
 def format_qty(quantity):
@@ -243,32 +377,95 @@ def update_ticker_cooldown():
     df.to_csv(TIME_AND_COINS_FILE, index=False)
     return {normalize_symbol(symbol) for symbol in df['Ticker'].dropna()}
 
+def get_timeframe(timeframe):
+    try:
+        from alpaca_trade_api.rest import TimeFrame
+    except ImportError:
+        return timeframe
+
+    tf_map = {
+        "1Minute": TimeFrame.Minute,
+        "1Hour": TimeFrame.Hour,
+        "1Day": TimeFrame.Day
+    }
+    return tf_map.get(timeframe, TimeFrame.Minute)
+
+
+def get_data_window(start_date):
+    start_dt = (dt.now() - timedelta(days=start_date)).strftime("%Y-%m-%d")
+    if str(end_date).lower() in ('now', 'today'):
+        end_dt = dt.now().strftime("%Y-%m-%d")
+    else:
+        end_dt = pd.to_datetime(end_date).strftime("%Y-%m-%d")
+    return start_dt, end_dt
+
+
+def normalize_bars_dataframe(df, fallback_symbol=None):
+    if df.empty:
+        return df
+
+    df.reset_index(inplace=True)
+    rename_columns = {
+        'timestamp': 'Timestamp',
+        'symbol': 'Symbol',
+        'open': 'Open',
+        'high': 'High',
+        'low': 'Low',
+        'close': 'Close'
+    }
+    df.rename(columns=rename_columns, inplace=True)
+    if 'Symbol' not in df.columns and fallback_symbol is not None:
+        df['Symbol'] = fallback_symbol
+    return df
+
+
 # Function to fetch data
 def get_data(ticker, timeframe= timeframe, start_date = int(start_date)):
     try:
-        # TimeFrame mapping
-        from alpaca_trade_api.rest import TimeFrame
-        tf_map = {
-            "1Minute": TimeFrame.Minute,
-            "1Hour": TimeFrame.Hour,
-            "1Day": TimeFrame.Day
-        }
-        tf = tf_map.get(timeframe, TimeFrame.Minute)
-        
-        start_dt = (dt.now() - timedelta(days = start_date)).strftime("%Y-%m-%d")
-        if str(end_date).lower() in ('now', 'today'):
-            end_dt = dt.now().strftime("%Y-%m-%d")
-        else:
-            end_dt = pd.to_datetime(end_date).strftime("%Y-%m-%d")
-        df = api.get_bars(ticker, tf, start_dt, end_dt, adjustment='raw').df
+        tf = get_timeframe(timeframe)
+        start_dt, end_dt = get_data_window(start_date)
+        df = api.get_bars(ticker, tf, start_dt, end_dt, adjustment='raw', feed=market_data_feed).df
         if not df.empty:
-            df.reset_index(inplace = True)
-            df = df[['timestamp', 'open', 'high', 'low', 'close']]
-            df.columns = ['Timestamp', 'Open', 'High', 'Low', 'Close']
+            df = normalize_bars_dataframe(df, normalize_symbol(ticker))
+            df = df[['Timestamp', 'Open', 'High', 'Low', 'Close']]
         return df
     except Exception as e:
         print(f"Error fetching data for {ticker}: {e}")
         return pd.DataFrame()
+
+
+def get_data_for_tickers(tickers, timeframe=timeframe, start_date=int(start_date)):
+    ticker_list = dedupe_symbols(tickers)
+    data_by_ticker = {ticker: pd.DataFrame() for ticker in ticker_list}
+    if not ticker_list:
+        return data_by_ticker
+
+    tf = get_timeframe(timeframe)
+    start_dt, end_dt = get_data_window(start_date)
+
+    for ticker_batch in chunked(ticker_list, bar_request_chunk_size):
+        try:
+            df = api.get_bars(ticker_batch, tf, start_dt, end_dt, adjustment='raw', feed=market_data_feed).df
+        except Exception as e:
+            print(f"Error fetching batch data for {ticker_batch}: {e}")
+            continue
+
+        if df.empty:
+            continue
+
+        df = normalize_bars_dataframe(df)
+        if 'Symbol' not in df.columns:
+            if len(ticker_batch) == 1:
+                df['Symbol'] = ticker_batch[0]
+            else:
+                print(f"Batch data did not include symbols for {ticker_batch}; skipping batch")
+                continue
+
+        for ticker, ticker_df in df.groupby('Symbol'):
+            ticker = normalize_symbol(ticker)
+            data_by_ticker[ticker] = ticker_df[['Timestamp', 'Open', 'High', 'Low', 'Close']].copy()
+
+    return data_by_ticker
 
 def has_recent_signal(df, column):
     if column not in df.columns:
@@ -277,13 +474,14 @@ def has_recent_signal(df, column):
 
 
 def check_params(tickers, run):
-    tickers_check = tickers
+    tickers_check = dedupe_symbols(tickers)
+    data_by_ticker = get_data_for_tickers(tickers_check)
 
     for ticker in tickers_check:
         print("Fetching Data for:", ticker)
         if run == False:
             break
-        df = get_data(ticker)
+        df = data_by_ticker.get(ticker, pd.DataFrame())
         if df.empty:
             print(f'No data returned for {ticker}; skipping')
             continue
@@ -386,7 +584,7 @@ def buy(coin_to_buy: str, trade_cap_percent=trade_capital_percent):
         print(f'Skipping {coin_to_buy}; no cash available for trade')
         return None
 
-    estimated_price = api.get_latest_trade(coin_to_buy).p
+    estimated_price = api.get_latest_trade(coin_to_buy, feed=market_data_feed).p
     targetPositionSize = float(buy_amount) / float(estimated_price)
     if targetPositionSize <= 0:
         print(f'Skipping {coin_to_buy}; calculated quantity is zero')
@@ -428,7 +626,7 @@ def buy(coin_to_buy: str, trade_cap_percent=trade_capital_percent):
 def sell(current_coin, quantity, buy_price, highest_price):
     current_coin = normalize_symbol(current_coin)
     cancel_open_sell_orders(current_coin)
-    sell_price = api.get_latest_trade(str(current_coin)).p
+    sell_price = api.get_latest_trade(str(current_coin), feed=market_data_feed).p
 
     order = api.submit_order(
         symbol=current_coin,
@@ -499,80 +697,101 @@ def mail_alert(mail_content, sleep_time):
     finally:
         time.sleep(sleep_time)
 
+def initialize_bot():
+    global tickers
+    ensure_order_storage()
+    api.list_positions()
+    tickers = load_tickers()
+    mail_alert(
+        "The Bot Started Running on {} at {} with {} tickers".format(
+            dt.now().strftime("%Y-%m-%d"),
+            dt.now().strftime("%H:%M:%S"),
+            len(tickers)
+        ),
+        0
+    )
+
+
+def run_bot_cycle():
+    df = reconcile_open_orders_with_alpaca()
+    if df.empty:
+        print("No Open Positions, Generating Signals")
+    else:
+        print('Checking Returns')
+        positions = get_alpaca_positions()
+        for i in list(df.index):
+            ticker = normalize_symbol(df.loc[i, 'Ticker'])
+            position = positions.get(ticker)
+            if position is None:
+                continue
+
+            quantity = float(position.qty)
+            curr_price = api.get_latest_trade(ticker, feed=market_data_feed).p
+            trailingStopActivatePrice = float(df.loc[i, 'ActivateTrailingStopAt'])
+            target_price = float(df.loc[i, 'Target Price'])
+            highest_price_since_buy = float(df.loc[i, 'Highest Price'])
+            buy_price = float(df.loc[i, 'Buy Price'])
+
+            if (curr_price >= trailingStopActivatePrice) and (curr_price > highest_price_since_buy):
+                new_stop_loss = curr_price * (1 - (trailing_stop * 0.01))
+                df.loc[i, 'Stop Loss Price'] = new_stop_loss
+                df.loc[i, 'Highest Price'] = curr_price
+                highest_price_since_buy = curr_price
+
+            lower_limit_price = float(df.loc[i, 'Stop Loss Price'])
+
+            if (curr_price <= lower_limit_price) or (curr_price >= target_price):
+                mail_content = sell(ticker, quantity, buy_price, highest_price_since_buy)
+                mail_alert(mail_content, 0)
+                df.drop(index=i, inplace=True)
+
+        df.to_csv(OPEN_ORDERS_FILE, index=False)
+        print("Returns Checked")
+
+    open_positions = get_open_exposure_count()
+
+    print("Open_Positions < Max_Trades", open_positions < max_trades)
+    print("Open Positions:", open_positions)
+    print("Max Trades:", max_trades)
+
+    if open_positions < max_trades:
+        run = True
+        cooldown_tickers = update_ticker_cooldown()
+        held_tickers = set(get_alpaca_positions()) | get_open_order_symbols('buy') | get_local_open_symbols()
+        tickers_check = [
+            ticker for ticker in tickers
+            if normalize_symbol(ticker) not in cooldown_tickers
+            and normalize_symbol(ticker) not in held_tickers
+        ]
+
+        print("Checking Params for {}".format(tickers_check))
+        check_params(tickers_check, run)
+
+
+def handle_cycle_error(error):
+    print(error)
+    try:
+        mail_alert("The Bot Stopped Running on {} at {}".format(dt.now().strftime("%Y-%m-%d"), dt.now().strftime("%H:%M:%S")), 0)
+    except Exception as mail_err:
+        print("Could not send alert mail:", mail_err)
+    print("Sleeping before retrying...")
+    time.sleep(30)
+
+
 def mainNEW():
+    try:
+        initialize_bot()
+    except Exception as e:
+        print("Error connecting to Alpaca API:", e)
+        return
+
+    while True:
         try:
-            ensure_order_storage()
-            api.list_positions()
+            run_bot_cycle()
         except Exception as e:
-            print("Error connecting to Alpaca API:", e)
-            return
-
-        mail_alert("The Bot Started Running on {} at {}".format(dt.now().strftime("%Y-%m-%d"), dt.now().strftime("%H:%M:%S")), 0)
-        while True:
-            try:
-                df = reconcile_open_orders_with_alpaca()
-                if df.empty:
-                    print("No Open Positions, Generating Signals")
-                else:
-                    print('Checking Returns')
-                    positions = get_alpaca_positions()
-                    for i in list(df.index):
-                        ticker = normalize_symbol(df.loc[i, 'Ticker'])
-                        position = positions.get(ticker)
-                        if position is None:
-                            continue
-
-                        quantity = float(position.qty)
-                        curr_price = api.get_latest_trade(ticker).p
-                        trailingStopActivatePrice = float(df.loc[i, 'ActivateTrailingStopAt'])
-                        target_price = float(df.loc[i, 'Target Price'])
-                        highest_price_since_buy = float(df.loc[i, 'Highest Price'])
-                        buy_price = float(df.loc[i, 'Buy Price'])
-
-                        if (curr_price >= trailingStopActivatePrice) and (curr_price > highest_price_since_buy):
-                            new_stop_loss = curr_price * (1 - (trailing_stop * 0.01))
-                            df.loc[i, 'Stop Loss Price'] = new_stop_loss
-                            df.loc[i, 'Highest Price'] = curr_price
-                            highest_price_since_buy = curr_price
-
-                        lower_limit_price = float(df.loc[i, 'Stop Loss Price'])
-
-                        if (curr_price <= lower_limit_price) or (curr_price >= target_price):
-                            mail_content = sell(ticker, quantity, buy_price, highest_price_since_buy)
-                            mail_alert(mail_content, 0)
-                            df.drop(index=i, inplace=True)
-
-                    df.to_csv(OPEN_ORDERS_FILE, index=False)
-                    print("Returns Checked")
-
-                open_positions = get_open_exposure_count()
-
-                print("Open_Positions < Max_Trades", open_positions < max_trades)
-                print("Open Positions:", open_positions)
-                print("Max Trades:", max_trades)
-
-                if open_positions < max_trades:
-                    run = True
-                    cooldown_tickers = update_ticker_cooldown()
-                    held_tickers = set(get_alpaca_positions()) | get_open_order_symbols('buy') | get_local_open_symbols()
-                    tickers_check = [
-                        ticker for ticker in tickers
-                        if normalize_symbol(ticker) not in cooldown_tickers
-                        and normalize_symbol(ticker) not in held_tickers
-                    ]
-
-                    print("Checking Params for {}".format(tickers_check))
-                    check_params(tickers_check, run)
-            except Exception as e:
-                print(e)
-                try:
-                    mail_alert("The Bot Stopped Running on {} at {}".format(dt.now().strftime("%Y-%m-%d"), dt.now().strftime("%H:%M:%S")), 0)
-                except Exception as mail_err:
-                    print("Could not send alert mail:", mail_err)
-                print("Sleeping before retrying...")
-                time.sleep(30)
-            finally:
-                time.sleep(LOOP_SLEEP_SECONDS)
+            handle_cycle_error(e)
+        finally:
+            time.sleep(LOOP_SLEEP_SECONDS)
             
 if __name__ == "__main__":
     mainNEW()

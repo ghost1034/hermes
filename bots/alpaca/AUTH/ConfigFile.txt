@@ -2,6 +2,7 @@
         "start_date": "10 days ago",
         "end_date": "now",
         "timeframe": "1Minute",
+        "market_data_feed": "iex",
         "candle_lookback_period": 1,
 
         "investment_amount": 10000,
@@ -12,6 +13,16 @@
         "activate_trailing_stop_loss_at": 0.5,
         "limit_price": 0.8,
         "sleep_time_between_trades": 300,
+
+        "dynamic_tickers": {
+                "enabled": true,
+                "top_per_side": 50,
+                "include_gainers": true,
+                "include_losers": true,
+                "min_price": null,
+                "max_price": null,
+                "bar_request_chunk_size": 100
+        },
 
         "indicators": {
 

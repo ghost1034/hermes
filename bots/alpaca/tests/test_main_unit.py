@@ -1,0 +1,163 @@
+from types import SimpleNamespace
+
+import pandas as pd
+import pytest
+
+import main
+
+
+def test_symbol_and_format_helpers():
+    assert main.normalize_symbol(None) == ''
+    assert main.normalize_symbol(' aapl ') == 'AAPL'
+    assert main.dedupe_symbols(['aapl', ' AAPL ', '', None, 'msft']) == ['AAPL', 'MSFT']
+    assert list(main.chunked(['A', 'B', 'C'], 2)) == [['A', 'B'], ['C']]
+    assert main.format_qty(1.230000) == '1.23'
+    assert main.format_price(1.235) == 1.24
+
+
+def test_ensure_order_storage_creates_csv_headers(temp_bot):
+    orders = pd.read_csv(temp_bot.ORDERS_FILE)
+    open_orders = pd.read_csv(temp_bot.OPEN_ORDERS_FILE)
+    cooldown = pd.read_csv(temp_bot.TIME_AND_COINS_FILE)
+    assert list(orders.columns) == temp_bot.ORDER_COLUMNS
+    assert list(open_orders.columns) == temp_bot.ORDER_COLUMNS
+    assert list(cooldown.columns) == temp_bot.TIME_COLUMNS
+
+
+def test_dynamic_mover_tickers_filter_to_tradable_and_price(temp_bot, fake_api, monkeypatch):
+    fake_api.data_response = {
+        'last_updated': 'now',
+        'gainers': [{'symbol': 'aapl', 'price': 150}, {'symbol': 'penny', 'price': 2}],
+        'losers': [{'symbol': 'msft', 'price': 300}, {'symbol': 'skip', 'price': 1000}],
+    }
+    fake_api.assets = [
+        SimpleNamespace(symbol='AAPL', tradable=True),
+        SimpleNamespace(symbol='MSFT', tradable=True),
+        SimpleNamespace(symbol='PENNY', tradable=True),
+        SimpleNamespace(symbol='SKIP', tradable=False),
+    ]
+    monkeypatch.setattr(temp_bot, 'dynamic_tickers_min_price', 10)
+    monkeypatch.setattr(temp_bot, 'dynamic_tickers_max_price', 500)
+    assert temp_bot.get_dynamic_mover_tickers() == ['AAPL', 'MSFT']
+
+
+def test_load_tickers_falls_back_when_dynamic_loading_fails(temp_bot, monkeypatch):
+    monkeypatch.setattr(temp_bot, 'dynamic_tickers_enabled', True)
+    monkeypatch.setattr(temp_bot, 'read_static_tickers', lambda: ['AAPL', 'MSFT'])
+    monkeypatch.setattr(temp_bot, 'get_dynamic_mover_tickers', lambda: (_ for _ in ()).throw(RuntimeError('boom')))
+    assert temp_bot.load_tickers() == ['AAPL', 'MSFT']
+
+
+def test_get_data_for_tickers_splits_batch_data_by_symbol(temp_bot, fake_api, monkeypatch):
+    index = pd.MultiIndex.from_tuples(
+        [('AAPL', pd.Timestamp('2026-01-01 09:30')), ('MSFT', pd.Timestamp('2026-01-01 09:30'))],
+        names=['symbol', 'timestamp']
+    )
+    fake_api.bars_df = pd.DataFrame({
+        'open': [100, 200],
+        'high': [101, 201],
+        'low': [99, 199],
+        'close': [100.5, 200.5],
+    }, index=index)
+    monkeypatch.setattr(temp_bot, 'bar_request_chunk_size', 100)
+    result = temp_bot.get_data_for_tickers(['aapl', 'msft'])
+    assert set(result) == {'AAPL', 'MSFT'}
+    assert list(result['AAPL'].columns) == ['Timestamp', 'Open', 'High', 'Low', 'Close']
+    assert result['AAPL']['Close'].iloc[0] == 100.5
+    assert result['MSFT']['Close'].iloc[0] == 200.5
+
+
+def test_buy_flow_submits_market_and_protective_orders(temp_bot, fake_api):
+    fake_api.latest_prices['AAPL'] = 100.0
+    mail = temp_bot.buy('aapl', trade_cap_percent=5)
+    assert mail == 'TRADE ALERT: BUY Order Filled for 5.0 AAPL at $100.0'
+    assert fake_api.submitted_orders[0].side == 'buy'
+    assert fake_api.submitted_orders[0].symbol == 'AAPL'
+    assert fake_api.submitted_orders[1].side == 'sell'
+    assert fake_api.submitted_orders[1].order_class == 'oco'
+
+    orders = pd.read_csv(temp_bot.ORDERS_FILE)
+    open_orders = pd.read_csv(temp_bot.OPEN_ORDERS_FILE)
+    cooldown = pd.read_csv(temp_bot.TIME_AND_COINS_FILE)
+    assert orders.iloc[0]['Ticker'] == 'AAPL'
+    assert open_orders.iloc[0]['Ticker'] == 'AAPL'
+    assert cooldown.iloc[0]['Ticker'] == 'AAPL'
+
+
+def test_sell_flow_cancels_protective_order_and_logs_sell(temp_bot, fake_api):
+    fake_api.latest_prices['AAPL'] = 110.0
+    fake_api.open_orders = [SimpleNamespace(id='protect-1', symbol='AAPL', side='sell')]
+    mail = temp_bot.sell('aapl', quantity=2, buy_price=100, highest_price=112)
+    assert mail == 'TRADE ALERT: SELL Order Filled for 2.0 AAPL at $110.0'
+    assert fake_api.canceled_order_ids == ['protect-1']
+
+    orders = pd.read_csv(temp_bot.ORDERS_FILE)
+    assert orders.iloc[0]['Type'] == 'sell'
+    assert orders.iloc[0]['Sell Price'] == 110.0
+
+
+def test_wait_for_order_fill_raises_for_rejected_order(temp_bot, fake_api):
+    fake_api.orders_by_id['bad-order'] = SimpleNamespace(status='rejected', filled_qty='0')
+    with pytest.raises(RuntimeError, match='rejected'):
+        temp_bot.wait_for_order_fill('bad-order')
+
+
+def test_run_bot_cycle_sells_when_target_hit(temp_bot, fake_api, monkeypatch):
+    row = {
+        'Time': '2026-01-01 09:30:00',
+        'Ticker': 'AAPL',
+        'Type': 'buy',
+        'Buy Price': 100.0,
+        'Sell Price': '-',
+        'Highest Price': 100.0,
+        'Quantity': 2.0,
+        'Total': 200.0,
+        'Acc Balance': 10000.0,
+        'Target Price': 105.0,
+        'Stop Loss Price': 95.0,
+        'ActivateTrailingStopAt': 101.0,
+        'Order ID': 'buy-1',
+        'Order Status': 'filled',
+        'Protective Order ID': 'oco-1',
+    }
+    pd.DataFrame([row], columns=temp_bot.ORDER_COLUMNS).to_csv(temp_bot.OPEN_ORDERS_FILE, index=False)
+    fake_api.positions = [SimpleNamespace(symbol='AAPL', qty='2')]
+    fake_api.latest_prices['AAPL'] = 106.0
+    monkeypatch.setattr(temp_bot, 'get_open_exposure_count', lambda: temp_bot.max_trades)
+
+    temp_bot.run_bot_cycle()
+
+    open_orders = pd.read_csv(temp_bot.OPEN_ORDERS_FILE)
+    orders = pd.read_csv(temp_bot.ORDERS_FILE)
+    assert open_orders.empty
+    assert orders.iloc[0]['Type'] == 'sell'
+
+
+def test_run_bot_cycle_updates_trailing_stop_without_selling(temp_bot, fake_api, monkeypatch):
+    row = {
+        'Time': '2026-01-01 09:30:00',
+        'Ticker': 'AAPL',
+        'Type': 'buy',
+        'Buy Price': 100.0,
+        'Sell Price': '-',
+        'Highest Price': 100.0,
+        'Quantity': 2.0,
+        'Total': 200.0,
+        'Acc Balance': 10000.0,
+        'Target Price': 200.0,
+        'Stop Loss Price': 95.0,
+        'ActivateTrailingStopAt': 101.0,
+        'Order ID': 'buy-1',
+        'Order Status': 'filled',
+        'Protective Order ID': 'oco-1',
+    }
+    pd.DataFrame([row], columns=temp_bot.ORDER_COLUMNS).to_csv(temp_bot.OPEN_ORDERS_FILE, index=False)
+    fake_api.positions = [SimpleNamespace(symbol='AAPL', qty='2')]
+    fake_api.latest_prices['AAPL'] = 110.0
+    monkeypatch.setattr(temp_bot, 'get_open_exposure_count', lambda: temp_bot.max_trades)
+
+    temp_bot.run_bot_cycle()
+
+    open_orders = pd.read_csv(temp_bot.OPEN_ORDERS_FILE)
+    assert open_orders.iloc[0]['Highest Price'] == 110.0
+    assert open_orders.iloc[0]['Stop Loss Price'] > 100

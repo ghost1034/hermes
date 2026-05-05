@@ -11,7 +11,7 @@ Trading Bot built using the Alpaca API in Python. Indicators used for Signal Gen
     2. Stoch: Lower Band, Upper Band, K Smoothing, D Smoothing
     3. EMA: Period, Smoothing
 
-2. Tickers.txt: Add ticker symbols (seperated by space) to check the critera for
+2. Tickers.txt: Fallback ticker symbols (seperated by space) to check if dynamic ticker loading is disabled or unavailable.
 3. authAlpaca.txt: Add Alpaca API Key and Secret Key for the bot to start trading. Change *"BASE-URL"* to *"api.alpaca.markets"* to trade in real-time markets.
 
 ## Root Dir
@@ -29,5 +29,16 @@ The bot stores local audit and cooldown state in the *ORDERS* folder. Alpaca pos
 Example: If _sleep_time_between_trades_ is 100 seconds and the bot places a buy trade for AAPL, the bot won't check the criteria for AAPL for another 100 seconds. The bot also skips symbols that already have an Alpaca position or pending buy order.
 
 The `end_date` config supports `"now"`/`"today"` for live trading or a parseable historical date for historical data pulls.
+
+The bot can load tickers from Alpaca's market movers screener on startup using `dynamic_tickers` in `ConfigFile.txt`. The default `market_data_feed` is `"iex"` for Alpaca's free Basic tier, and historical bars are requested in batches so the bot can evaluate more symbols without one API call per ticker. `AUTH/Tickers.txt` remains the fallback list.
+
+## Testing
+
+Run the offline mocked suite with `python3 -m pytest`. These tests do not contact Alpaca or submit orders.
+
+Optional paper-only integration checks are guarded by environment variables:
+
+1. `ALPACA_RUN_READONLY_SMOKE=1 python3 -m pytest tests/test_integration_readonly.py` checks account, positions, open orders, assets, latest trade, bars, and movers without placing orders.
+2. `ALPACA_ENABLE_ORDER_TESTS=1 python3 -m pytest tests/test_integration_orders.py` submits and cancels a tiny paper-only limit order. The test refuses to run unless `BASE-URL` points to `paper-api.alpaca.markets`.
 
 Feel free to contact me at tejas.linge101@gmail.com for **ANY** doubts, suggestions, reviews, or to just connect and talk about Algo Trading Projects. Thanks!

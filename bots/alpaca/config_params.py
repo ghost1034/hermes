@@ -7,6 +7,7 @@ config = json.loads(open('AUTH/ConfigFile.txt', 'r').read()) # Config File with 
 
 
 PRICE_SOURCES = ('Open', 'High', 'Low', 'Close')
+MARKET_DATA_FEEDS = ('iex', 'sip', 'delayed_sip')
 
 
 def _require_number(name, value, minimum=None, maximum=None):
@@ -27,6 +28,26 @@ def _require_int(name, value, minimum=None, maximum=None):
 def _require_bool(name, value):
     if not isinstance(value, bool):
         raise ValueError(f'{name} must be true or false')
+
+
+def _optional_bool(config_section, key, default):
+    value = config_section.get(key, default)
+    _require_bool(key, value)
+    return value
+
+
+def _optional_int(config_section, key, default, minimum=None, maximum=None):
+    value = config_section.get(key, default)
+    _require_int(key, value, minimum, maximum)
+    return value
+
+
+def _optional_number(config_section, key, default, minimum=None, maximum=None):
+    value = config_section.get(key, default)
+    if value is None:
+        return value
+    _require_number(key, value, minimum, maximum)
+    return value
 
 
 def _require_keys(name, value, required_keys):
@@ -81,6 +102,25 @@ def _validate_config(config):
 
     if config['timeframe'] not in ('1Minute', '1Hour', '1Day'):
         raise ValueError('timeframe must be one of: 1Minute, 1Hour, 1Day')
+
+    market_data_feed = str(config.get('market_data_feed', 'iex')).lower()
+    if market_data_feed not in MARKET_DATA_FEEDS:
+        raise ValueError(f'market_data_feed must be one of: {", ".join(MARKET_DATA_FEEDS)}')
+
+    dynamic_tickers = config.get('dynamic_tickers', {})
+    if not isinstance(dynamic_tickers, dict):
+        raise ValueError('dynamic_tickers must be an object')
+    _optional_bool(dynamic_tickers, 'enabled', True)
+    _optional_bool(dynamic_tickers, 'include_gainers', True)
+    _optional_bool(dynamic_tickers, 'include_losers', True)
+    _optional_int(dynamic_tickers, 'top_per_side', 50, minimum=1, maximum=100)
+    _optional_int(dynamic_tickers, 'bar_request_chunk_size', 100, minimum=1, maximum=200)
+    min_price = _optional_number(dynamic_tickers, 'min_price', None, minimum=0)
+    max_price = _optional_number(dynamic_tickers, 'max_price', None, minimum=0)
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise ValueError('dynamic_tickers.min_price must be <= dynamic_tickers.max_price')
+    if not dynamic_tickers.get('include_gainers', True) and not dynamic_tickers.get('include_losers', True):
+        raise ValueError('dynamic_tickers must include gainers, losers, or both')
 
     indicators = config['indicators']
     _require_keys('indicators', indicators, ['EMA', 'stochRSI', 'stoch', 'EMA_params', 'stoch_params', 'stochRSI_params'])
@@ -148,6 +188,16 @@ start_date = _parse_start_date_days(start_date)
 
 end_date = config["end_date"]
 timeframe = config["timeframe"]
+market_data_feed = str(config.get('market_data_feed', 'iex')).lower()
+
+dynamic_tickers_config = config.get('dynamic_tickers', {})
+dynamic_tickers_enabled = dynamic_tickers_config.get('enabled', True)
+dynamic_tickers_include_gainers = dynamic_tickers_config.get('include_gainers', True)
+dynamic_tickers_include_losers = dynamic_tickers_config.get('include_losers', True)
+dynamic_tickers_top_per_side = dynamic_tickers_config.get('top_per_side', 50)
+dynamic_tickers_min_price = dynamic_tickers_config.get('min_price')
+dynamic_tickers_max_price = dynamic_tickers_config.get('max_price')
+bar_request_chunk_size = dynamic_tickers_config.get('bar_request_chunk_size', 100)
 
 # Technical Indicator (TI) Params
 ema = config['indicators']['EMA']
