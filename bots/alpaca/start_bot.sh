@@ -18,7 +18,7 @@ fi
 
 # Run the bot
 cd "$SCRIPT_DIR" || exit 1
-python3 "$SCRIPT_DIR/main.py"
+python3 "$SCRIPT_DIR/main.py" >> "$SCRIPT_DIR/daytrader.log" 2>&1
 EXIT_CODE=$?
 
 # If the bot exits with a non-zero code, send an alert
