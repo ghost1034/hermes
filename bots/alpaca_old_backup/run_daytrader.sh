@@ -4,5 +4,4 @@ set -a
 [ -f "$SCRIPT_DIR/.env" ] && source "$SCRIPT_DIR/.env"
 set +a
 
-cd "$SCRIPT_DIR" || exit 1
-python3 "$SCRIPT_DIR/main.py" >> "$SCRIPT_DIR/daytrader.log" 2>&1
+python3 "$SCRIPT_DIR/daytrader.py" >> "$SCRIPT_DIR/daytrader.log" 2>&1
