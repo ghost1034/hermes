@@ -4,6 +4,51 @@ import json
 
 config = json.loads(open('AUTH/ConfigFile.txt', 'r').read()) # Config File with All Parameters
 
+
+def _require_number(name, value, minimum=None, maximum=None):
+    if not isinstance(value, (int, float)):
+        raise ValueError(f'{name} must be a number')
+    if minimum is not None and value < minimum:
+        raise ValueError(f'{name} must be >= {minimum}')
+    if maximum is not None and value > maximum:
+        raise ValueError(f'{name} must be <= {maximum}')
+
+
+def _require_bool_string(name, value):
+    if value not in ('True', 'False'):
+        raise ValueError(f'{name} must be "True" or "False"')
+
+
+def _validate_config(config):
+    required_keys = [
+        'investment_amount', 'max_trades_active', 'trade_capital_percent',
+        'stop_loss', 'trailing_stop', 'limit_price',
+        'activate_trailing_stop_loss_at', 'sleep_time_between_trades',
+        'start_date', 'timeframe', 'indicators'
+    ]
+    missing = [key for key in required_keys if key not in config]
+    if missing:
+        raise ValueError(f'Missing config keys: {", ".join(missing)}')
+
+    _require_number('investment_amount', config['investment_amount'], minimum=0)
+    _require_number('max_trades_active', config['max_trades_active'], minimum=1)
+    _require_number('trade_capital_percent', config['trade_capital_percent'], minimum=0, maximum=100)
+    _require_number('stop_loss', config['stop_loss'], minimum=0)
+    _require_number('trailing_stop', config['trailing_stop'], minimum=0)
+    _require_number('limit_price', config['limit_price'], minimum=0)
+    _require_number('activate_trailing_stop_loss_at', config['activate_trailing_stop_loss_at'], minimum=0)
+    _require_number('sleep_time_between_trades', config['sleep_time_between_trades'], minimum=1)
+
+    if config['timeframe'] not in ('1Minute', '1Hour', '1Day'):
+        raise ValueError('timeframe must be one of: 1Minute, 1Hour, 1Day')
+
+    indicators = config['indicators']
+    for name in ('EMA', 'stochRSI', 'stoch'):
+        _require_bool_string(f'indicators.{name}', indicators.get(name))
+
+
+_validate_config(config)
+
 # setting up parameters
 # Order Params
 global max_trades
@@ -30,7 +75,6 @@ start_date = int(start_date.split()[0])
 
 end_date = config["end_date"]
 timeframe = config["timeframe"]
-exchange = config["exchange"]
 
 # Technical Indicator (TI) Params
 ema = config['indicators']['EMA']

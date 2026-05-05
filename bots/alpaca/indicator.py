@@ -69,7 +69,7 @@ def stochastic(df, period = stoch_klength, smoothK = stoch_smoothk, smoothD = st
         d = df_temp['Stoch %D']
         signals = []
         for i in range(len(k)):
-            if k[i] > d[i] and k[i] > stoch_lower_band and k[i - 1] < stoch_lower_band:
+            if i > 0 and k.iloc[i] > d.iloc[i] and k.iloc[i] > stoch_lower_band and k.iloc[i - 1] < stoch_lower_band:
                 signals.append(1)
             else: signals.append(0)
         df_temp['Stoch Signal'] = signals
@@ -89,13 +89,15 @@ def stochastic(df, period = stoch_klength, smoothK = stoch_smoothk, smoothD = st
         for i in range(len(k)):
             # if k[i] > d[i] and k[i] > lower_band and k[i - 1] < lower_band:
             # if d[i] > lower_band and d[i] < upper_band:
-            if k[i] > d[i] and k[i] < stochRSI_lower_band:
+            if k.iloc[i] > d.iloc[i] and k.iloc[i] < stochRSI_lower_band:
                 signals.append(1)
     #         elif k[i] < d[i] and k[i] < lower_band:
             else: signals.append(0)
         df_temp['StochRSI Signal'] = signals
         df['StochRSI Signal'] = df_temp['StochRSI Signal']
         return df
+
+    raise ValueError(f'Unsupported stochastic TYPE: {TYPE}')
 
 def rsi(ohlc: pd.DataFrame, period: int = stochRSI_rsi_length) -> pd.Series:
     """See source https://github.com/peerchemist/finta
