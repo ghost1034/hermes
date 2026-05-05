@@ -270,6 +270,12 @@ def get_data(ticker, timeframe= timeframe, start_date = int(start_date)):
         print(f"Error fetching data for {ticker}: {e}")
         return pd.DataFrame()
 
+def has_recent_signal(df, column):
+    if column not in df.columns:
+        return False
+    return 1 in list(df[column].fillna(0).iloc[-lookback_period:])
+
+
 def check_params(tickers, run):
     tickers_check = tickers
 
@@ -283,172 +289,49 @@ def check_params(tickers, run):
             continue
         print(df.tail())
 
-        if stoch == 'True' and stoch_rsi == 'False' and ema == 'False': # Stoch
-            df = stochastic(df, TYPE = 'Stoch')
-            print("Calculating Signals for Stoch")
-            signal_list = list(df['Stoch Signal'].iloc[ -lookback_period : ])
+        signal_columns = []
+        enabled_indicators = []
 
-            signal_count = 0
-            for signal in signal_list:
-                signal_count += 1
-                
-                if signal == 1:
-                    run = place_buy_signal(ticker)
-                    break
-            if signal_count == lookback_period:
-                print('No Buy Signal Found for Stoch')
-                    
-        elif stoch == 'False' and stoch_rsi == 'True' and ema == 'False': # StochRSI
+        if stoch:
+            print("Calculating Signals for Stoch")
+            df = stochastic(df, TYPE='Stoch')
+            signal_columns.append(('Stoch', 'Stoch Signal'))
+            enabled_indicators.append('Stoch')
+
+        if stoch_rsi:
             print("Calculating Signals for StochRSI")
             df = rsi(df)
-            df = stochastic(df, TYPE = 'StochRSI')
+            df = stochastic(df, TYPE='StochRSI')
+            signal_columns.append(('StochRSI', 'StochRSI Signal'))
+            enabled_indicators.append('StochRSI')
 
-            signal_list = list(df['StochRSI Signal'].iloc[ -lookback_period : ])
-
-            signal_count = 0
-            for signal in signal_list:
-                signal_count += 1
-                # print(signal)
-                if signal == 1:
-                    run = place_buy_signal(ticker)
-                    break
-            if signal_count == lookback_period:
-                print('No Buy Signal Found for StochRSI')
-
-        elif stoch == 'False' and stoch_rsi == 'False' and ema == 'True': # EMA
+        if ema:
             print("Calculating Signals for EMA")
             df = implement_ema_strategy(df)
+            enabled_indicators.append('EMA')
 
-            signal_list = list(df['EMA Signal'].iloc[ -lookback_period : ])
+        if not enabled_indicators:
+            print('Please enable at least one indicator in ConfigFile.txt')
+            continue
 
-            signal_count = 0
+        if ema and not signal_columns:
+            signal_columns.append(('EMA', 'EMA Signal'))
 
-            for signal in signal_list:
-                signal_count += 1
-                if signal == 1:
-                    run = place_buy_signal(ticker)
-                    break
-            if signal_count == lookback_period:
-                print('No Buy Signal found for EMA')
+        missing_signals = [name for name, column in signal_columns if not has_recent_signal(df, column)]
+        ema_filter_passes = True
+        if ema and any(name != 'EMA' for name, _ in signal_columns):
+            ema_filter_passes = bool(df['EMA Above'].fillna(0).iloc[-1] == 1)
 
-        elif stoch == 'True' and stoch_rsi == 'True' and ema == 'True': # All 3
-            print("Calculating Signals for Stoch + StochRSI + EMA")
-            df = stochastic(df, TYPE = 'Stoch')
-            
-            df = rsi(df)
-            df = stochastic(df, TYPE = 'StochRSI')
-            df = implement_ema_strategy(df)
+        if not missing_signals and ema_filter_passes:
+            run = place_buy_signal(ticker)
+            continue
 
-            stoch_signal_list = list(df['Stoch Signal'].iloc[ -lookback_period : ])
-            stochRSI_signal_list = list(df['StochRSI Signal'].iloc[ -lookback_period : ])
-            ema_signal_list = list(df['EMA Signal'].iloc[ -lookback_period : ])
-
-            trade_decision_list = []
-
-            for signal in stoch_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-            for signal in stochRSI_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-            for signal in ema_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-
-            if len(trade_decision_list) == 3:
-                run = place_buy_signal(ticker)
-            # elif len(trade_decision_list) < 3:
-            else:
-                print('No Buy Signal Found for Stoch + StochRSI + EMA')
-                continue
-
-
-        elif stoch == 'True' and stoch_rsi == 'True' and ema == 'False': # Stoch + StochRSI
-            print("Calculating Signals for Stoch + StochRSI")
-            df = stochastic(df, TYPE = 'Stoch')
-            df = rsi(df)
-            df = stochastic(df, TYPE = 'StochRSI')
-
-            stoch_signal_list = list(df['Stoch Signal'].iloc[ -lookback_period : ])
-            stochRSI_signal_list = list(df['StochRSI Signal'].iloc[ -lookback_period : ])
-
-            trade_decision_list = []
-
-            for signal in stoch_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-            for signal in stochRSI_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-
-            if len(trade_decision_list) == 2:
-                run = place_buy_signal(ticker)
-            # elif len(trade_decision_list) < 3:
-            else:
-                print("No Buy Signal Found for Stoch + StochRSI")
-                continue
-
-
-        elif stoch_rsi == 'True' and ema == 'True' and stoch == 'False': # StochRSI + EMA
-            print("Calculating Signals for StochRSI + EMA")
-            df = rsi(df)
-            df = stochastic(df, TYPE = 'StochRSI')
-
-            df = implement_ema_strategy(df)
-
-            stochRSI_signal_list = list(df['StochRSI Signal'].iloc[ -lookback_period : ])
-            ema_signal_list = list(df['EMA Signal'].iloc[ -lookback_period : ])
-
-            trade_decision_list = []
-
-            for signal in stochRSI_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-            for signal in ema_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-
-            if len(trade_decision_list) == 2:
-                run = place_buy_signal(ticker)
-            else:
-                print('No Buy Signal Found for StochRSI + EMA')
-                continue
-
-                
-        elif stoch_rsi == 'False' and ema == 'True' and stoch == 'True': # EMA + Stoch
-            print("Calculating Signals for EMA + Stoch")
-            df = stochastic(df, TYPE = "Stoch")
-            df = implement_ema_strategy(df)
-
-            stoch_signal_list = list(df['Stoch Signal'].iloc[ -lookback_period : ])
-            ema_signal_list = list(df['EMA Signal'].iloc[ -lookback_period : ])
-
-            trade_decision_list = []
-
-            for signal in stoch_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-            for signal in ema_signal_list:
-                if signal == 1:
-                    trade_decision_list.append(signal)
-                    break
-
-            if len(trade_decision_list) == 2:
-                run = place_buy_signal(ticker)
-            else:
-                print('No Buy Signal Found for EMA + Stoch')
-                continue
-
-        else:
-            print('Please select any 1 indicator by changing indicator setting to "True"')
+        reason_parts = []
+        if missing_signals:
+            reason_parts.append('missing recent signal from {}'.format(', '.join(missing_signals)))
+        if not ema_filter_passes:
+            reason_parts.append('price is not above EMA')
+        print('No Buy Signal Found for {} ({})'.format(' + '.join(enabled_indicators), '; '.join(reason_parts)))
 
 def order_files(coin_to_buy, price_coin, highest_price, targetPositionSize, target_price,
                 stop_loss_price, ActivateTrailingStopAt, order_id='', order_status='',

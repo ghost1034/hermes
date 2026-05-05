@@ -2,23 +2,23 @@
         "start_date": "10 days ago",
         "end_date": "now",
         "timeframe": "1Minute",
-        "candle_lookback_period": 2,
+        "candle_lookback_period": 1,
 
         "investment_amount": 10000,
-        "max_trades_active": 10,
+        "max_trades_active": 3,
         "trade_capital_percent": 5, 
-        "stop_loss": 0.2,
-        "trailing_stop": 0.2,
-        "activate_trailing_stop_loss_at": 0.1,
-        "limit_price": 0.5,
-        "sleep_time_between_trades": 60,
+        "stop_loss": 0.4,
+        "trailing_stop": 0.35,
+        "activate_trailing_stop_loss_at": 0.5,
+        "limit_price": 0.8,
+        "sleep_time_between_trades": 300,
 
         "indicators": {
 
-                "stochRSI" : "True",
+                "stochRSI" : true,
                 "stochRSI_params": {
-                        "lower_band": 35,
-                        "upper_band": 100,
+                        "lower_band": 20,
+                        "upper_band": 80,
                         "K": 3,
                         "D": 3,
                         "rsi_length": 14,
@@ -27,19 +27,20 @@
                 },
 
 
-                "stoch": "False",
+                "stoch": false,
                 "stoch_params": {
-                        "lower_band": 35,
+                        "lower_band": 20,
                         "upper_band": 80,
                         "K_Length": 14,
                         "smooth_K": 3,
-                        "smooth_D": 3
+                        "smooth_D": 3,
+                        "source": "Close"
                 },
 
 
-                "EMA": "False",
+                "EMA": true,
                 "EMA_params": {
-                        "ema_period": 9,
+                        "ema_period": 20,
                         "source": "Close",
                         "smoothing": 2
                 }
