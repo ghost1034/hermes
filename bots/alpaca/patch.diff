@@ -1,0 +1,90 @@
+--- daytrader.py
++++ daytrader.py
+@@ -1328,15 +1328,8 @@
+ MAX_ORDERS_PER_MINUTE = 20
+ order_timestamps = deque(maxlen=MAX_ORDERS_PER_MINUTE)
+ 
+-def submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price):
++def submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price, current_equity):
+     global trading_halted_today
+-    account = trading_client.get_account()
+-    if daily_loss_breached(float(account.equity)):
+-        set_trading_halted(True, "daily_loss")
+-        logger.error(f"Aborting {symbol} HFT order - daily loss limit already breached.")
+-        return False
+-        
+     req = LimitOrderRequest(
+         symbol=symbol,
+         qty=qty,
+@@ -1376,14 +1369,45 @@
+                 return # Rate limited
+                 
+         # Existing checks (e.g. max exposure, daily limits, symbol cooldowns)
+         if not is_symbol_trade_allowed(symbol, now):
+             return
++            
++        if symbol in pending_entries:
++            logger.info(f"Skipping HFT {symbol} signal - entry already pending.")
++            return
+             
+         # Temporarily lock symbol to prevent duplicate firing on the same tick burst
+         symbol_cooldowns[symbol] = now + timedelta(seconds=15)
+         order_timestamps.append(now)
+         
+     logger.info(f"HFT SIGNAL: {signal} {symbol} at {price}")
+     
++    try:
++        positions, symbol_open_orders = await asyncio.gather(
++            asyncio.to_thread(trading_client.get_all_positions),
++            asyncio.to_thread(trading_client.get_orders, GetOrdersRequest(status=QueryOrderStatus.OPEN, symbols=[symbol]))
++        )
++    except Exception as e:
++        logger.error(f"Error checking existing exposure for {symbol} HFT: {e}")
++        return
++
++    has_position = any(p.symbol == symbol for p in positions)
++    if has_position or symbol_open_orders:
++        logger.info(f"Skipping {symbol} HFT signal - existing position or open order found.")
++        return
++        
++    stock_positions = [p for p in positions if is_stock_position(p)]
++    if len(stock_positions) + current_pending_entry_count() >= MAX_OPEN_POSITIONS:
++        logger.info(f"Skipping {symbol} HFT signal - max open positions reached.")
++        return
++
++    if signal == "SHORT":
++        try:
++            asset = await asyncio.to_thread(trading_client.get_asset, symbol)
++            if not asset.shortable or not asset.easy_to_borrow:
++                logger.info(f"Skipping HFT short signal for {symbol} - not shortable or not easy to borrow.")
++                return
++        except Exception as e:
++            logger.error(f"Error checking shortability for {symbol} HFT: {e}")
++            return
++    
+     # Calculate position size
+-    account = trading_client.get_account()
++    try:
++        account = await asyncio.to_thread(trading_client.get_account)
++    except Exception as e:
++        logger.error(f"Error checking account for {symbol} HFT: {e}")
++        return
++        
+     current_equity = float(account.equity)
++    if daily_loss_breached(current_equity):
++        set_trading_halted(True, "daily_loss")
++        logger.error(f"Aborting {symbol} HFT order - daily loss limit already breached.")
++        return
++        
+     target_value = current_equity * POSITION_SIZE_MIN_PCT
+     available_buying_power = float(account.daytrading_buying_power) if float(account.daytrading_buying_power) > 0 else float(account.buying_power)
+@@ -1409,6 +1433,6 @@
+         side = OrderSide.SELL
+ 
+-    # We use submit_hft_bracket_order directly
+-    submit_hft_bracket_order(symbol, side, qty, limit_price, tp_price, sl_price)
++    with state_lock:
++        pending_entries[symbol] = now
++    
++    # We use submit_hft_bracket_order in a background thread to prevent blocking
++    asyncio.create_task(asyncio.to_thread(submit_hft_bracket_order, symbol, side, qty, limit_price, tp_price, sl_price, current_equity))

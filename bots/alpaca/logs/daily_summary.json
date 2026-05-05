@@ -1,0 +1,27 @@
+{
+  "current_equity": 98398.47,
+  "daily_pnl": -180.13000000000466,
+  "daily_pnl_pct": -0.0018272728563806409,
+  "initial_equity": 98578.6,
+  "reason": "flatten_deadline",
+  "stats": {
+    "abnormal_alerts": 47,
+    "entries_by_symbol": {},
+    "entries_confirmed": 0,
+    "entries_failed": 0,
+    "entries_submitted": 66,
+    "exits_by_reason": {
+      "manual_or_risk_close": 6,
+      "position_closed": 58
+    },
+    "exits_requested": 7,
+    "positions_closed": 64,
+    "rejections_by_reason": {
+      "symbol_cooldown": 6060
+    },
+    "signals_detected": 0,
+    "signals_rejected": 6060
+  },
+  "timestamp": "2026-05-05T15:45:16.469600-04:00",
+  "trading_day": "2026-05-05"
+}
