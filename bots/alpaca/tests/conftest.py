@@ -49,6 +49,8 @@ class FakeAPI:
         symbol = kwargs.get('symbol')
         qty = kwargs.get('qty', '1')
         fill_price = self.latest_prices.get(symbol, 100.0)
+        if kwargs.get('type') == 'market':
+            self.apply_market_fill(symbol, side, float(qty), fill_price)
         self.orders_by_id[order_id] = SimpleNamespace(
             id=order_id,
             status='filled',
@@ -59,11 +61,31 @@ class FakeAPI:
         )
         return order
 
+    def apply_market_fill(self, symbol, side, qty, fill_price):
+        delta = qty if side == 'buy' else -qty
+        for position in list(self.positions):
+            if position.symbol != symbol:
+                continue
+            new_qty = float(position.qty) + delta
+            if abs(new_qty) < 0.000001:
+                self.positions.remove(position)
+            else:
+                position.qty = str(new_qty)
+            return
+
+        if abs(delta) >= 0.000001:
+            self.positions.append(SimpleNamespace(
+                symbol=symbol,
+                qty=str(delta),
+                avg_entry_price=str(fill_price)
+            ))
+
     def get_order(self, order_id):
         return self.orders_by_id[order_id]
 
     def cancel_order(self, order_id):
         self.canceled_order_ids.append(order_id)
+        self.open_orders = [order for order in self.open_orders if order.id != order_id]
         if order_id in self.orders_by_id:
             self.orders_by_id[order_id].status = 'canceled'
 
@@ -83,5 +105,6 @@ def temp_bot(monkeypatch, tmp_path, fake_api):
     monkeypatch.setattr(main, 'api', fake_api)
     monkeypatch.setattr(main, 'mail_alert', lambda *args, **kwargs: None)
     monkeypatch.setattr(main, 'tickers', [])
+    monkeypatch.setattr(main, 'is_shutdown_time', lambda *args, **kwargs: False)
     main.ensure_order_storage()
     return main

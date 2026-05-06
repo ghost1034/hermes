@@ -7,6 +7,7 @@ from datetime import timedelta
 import time
 import os
 import smtplib
+from zoneinfo import ZoneInfo
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -54,6 +55,9 @@ OPEN_ORDERS_FILE = os.path.join(ORDERS_DIR, 'Open Orders.csv')
 TIME_AND_COINS_FILE = os.path.join(ORDERS_DIR, 'Time and Coins.csv')
 ORDER_FILL_TIMEOUT_SECONDS = 60
 LOOP_SLEEP_SECONDS = min(max(5, int(sleep_time)), 60)
+EASTERN_TZ = ZoneInfo('America/New_York')
+SHUTDOWN_HOUR_ET = 15
+SHUTDOWN_MINUTE_ET = 45
 
 ORDER_COLUMNS = [
     'Time', 'Ticker', 'Type', 'Buy Price', 'Sell Price', 'Highest Price',
@@ -104,6 +108,37 @@ def normalize_symbol(symbol):
     if symbol is None:
         return ''
     return str(symbol).upper().strip()
+
+
+def to_eastern_time(now=None):
+    if now is None:
+        return dt.now(EASTERN_TZ)
+    if now.tzinfo is None:
+        return now.replace(tzinfo=EASTERN_TZ)
+    return now.astimezone(EASTERN_TZ)
+
+
+def shutdown_time_for_day(now=None):
+    eastern_now = to_eastern_time(now)
+    return eastern_now.replace(
+        hour=SHUTDOWN_HOUR_ET,
+        minute=SHUTDOWN_MINUTE_ET,
+        second=0,
+        microsecond=0
+    )
+
+
+def is_shutdown_time(now=None):
+    return to_eastern_time(now) >= shutdown_time_for_day(now)
+
+
+def seconds_until_shutdown(now=None):
+    eastern_now = to_eastern_time(now)
+    return max(0, (shutdown_time_for_day(eastern_now) - eastern_now).total_seconds())
+
+
+def get_loop_sleep_seconds(now=None):
+    return min(LOOP_SLEEP_SECONDS, seconds_until_shutdown(now))
 
 
 def dedupe_symbols(symbols):
@@ -245,6 +280,23 @@ def get_open_order_symbols(side=None):
     return symbols
 
 
+def cancel_all_open_orders():
+    try:
+        orders = api.list_orders(status='open', direction='desc')
+    except Exception as e:
+        print('Error fetching Alpaca open orders for shutdown:', e)
+        return 0
+
+    canceled_count = 0
+    for order in orders:
+        try:
+            api.cancel_order(order.id)
+            canceled_count += 1
+        except Exception as e:
+            print(f'Error canceling open order {order.id} for shutdown:', e)
+    return canceled_count
+
+
 def get_local_open_symbols():
     df = read_csv(OPEN_ORDERS_FILE, ORDER_COLUMNS)
     if df.empty or 'Ticker' not in df.columns:
@@ -283,6 +335,140 @@ def cancel_open_sell_orders(symbol):
                 api.cancel_order(order.id)
             except Exception as e:
                 print(f'Error canceling protective sell order {order.id} for {symbol}:', e)
+
+
+def get_account_cash_value():
+    try:
+        return api.get_account().cash
+    except Exception as e:
+        print('Error fetching account cash for order log:', e)
+        return ''
+
+
+def get_local_open_order_value(local_open_orders, symbol, column, default='-'):
+    if local_open_orders.empty or column not in local_open_orders.columns:
+        return default
+
+    ticker_matches = local_open_orders['Ticker'].map(normalize_symbol) == symbol
+    matching_rows = local_open_orders[ticker_matches]
+    if matching_rows.empty:
+        return default
+
+    value = matching_rows.iloc[0][column]
+    if pd.isna(value) or value == '':
+        return default
+    return value
+
+
+def parse_optional_float(value, default=None):
+    if value is None or value == '' or value == '-':
+        return default
+    try:
+        if pd.isna(value):
+            return default
+    except Exception:
+        pass
+    try:
+        return float(value)
+    except Exception:
+        return default
+
+
+def remove_closed_local_open_orders(closed_symbols):
+    if not closed_symbols:
+        return
+
+    df = read_csv(OPEN_ORDERS_FILE, ORDER_COLUMNS)
+    if df.empty or 'Ticker' not in df.columns:
+        return
+
+    keep_rows = ~df['Ticker'].map(normalize_symbol).isin(closed_symbols)
+    df.loc[keep_rows].to_csv(OPEN_ORDERS_FILE, index=False)
+
+
+def log_shutdown_order(position, filled_order, side, filled_qty, filled_price, local_open_orders):
+    symbol = normalize_symbol(position.symbol)
+    buy_price = get_local_open_order_value(local_open_orders, symbol, 'Buy Price')
+    if buy_price == '-':
+        buy_price = getattr(position, 'avg_entry_price', '-')
+
+    highest_price = get_local_open_order_value(local_open_orders, symbol, 'Highest Price', buy_price)
+    total = '-'
+    if filled_price is not None:
+        total = filled_qty * filled_price
+
+    row = {
+        'Time': dt.now().strftime("%Y-%m-%d %H:%M:%S"),
+        'Ticker': symbol,
+        'Type': f'shutdown_{side}',
+        'Buy Price': buy_price,
+        'Sell Price': filled_price if filled_price is not None else '-',
+        'Highest Price': highest_price,
+        'Quantity': filled_qty,
+        'Total': total,
+        'Acc Balance': get_account_cash_value(),
+        'Target Price': '-',
+        'Stop Loss Price': '-',
+        'ActivateTrailingStopAt': '-',
+        'Order ID': filled_order.id,
+        'Order Status': filled_order.status,
+        'Protective Order ID': '-',
+    }
+
+    df = read_csv(ORDERS_FILE, ORDER_COLUMNS)
+    df.loc[len(df.index)] = [row.get(column, '') for column in ORDER_COLUMNS]
+    df.to_csv(ORDERS_FILE, index=False)
+
+
+def flatten_all_positions():
+    ensure_order_storage()
+    canceled_count = cancel_all_open_orders()
+    if canceled_count:
+        print(f'Canceled {canceled_count} open Alpaca orders before shutdown flatten')
+
+    try:
+        positions = api.list_positions()
+    except Exception as e:
+        print('Error fetching Alpaca positions for shutdown:', e)
+        return set()
+
+    local_open_orders = read_csv(OPEN_ORDERS_FILE, ORDER_COLUMNS)
+    attempted_symbols = set()
+
+    for position in list(positions):
+        symbol = normalize_symbol(position.symbol)
+        quantity = parse_optional_float(getattr(position, 'qty', None), 0)
+        if not symbol or quantity == 0:
+            continue
+
+        side = 'sell' if quantity > 0 else 'buy'
+        close_qty = abs(quantity)
+        attempted_symbols.add(symbol)
+        try:
+            order = api.submit_order(
+                symbol=symbol,
+                qty=format_qty(close_qty),
+                side=side,
+                type='market',
+                time_in_force='day'
+            )
+            filled_order = wait_for_order_fill(order.id)
+            filled_qty = parse_optional_float(getattr(filled_order, 'filled_qty', None), close_qty)
+            filled_price = parse_optional_float(getattr(filled_order, 'filled_avg_price', None))
+            log_shutdown_order(position, filled_order, side, filled_qty, filled_price, local_open_orders)
+            print(f'Shutdown flatten order filled for {filled_qty} {symbol}')
+        except Exception as e:
+            print(f'Error flattening {symbol} during shutdown:', e)
+
+    try:
+        remaining_symbols = {normalize_symbol(position.symbol) for position in api.list_positions()}
+    except Exception as e:
+        print('Error verifying positions after shutdown flatten:', e)
+        remaining_symbols = attempted_symbols
+
+    closed_symbols = attempted_symbols - remaining_symbols
+    remove_closed_local_open_orders(closed_symbols)
+    return closed_symbols
 
 
 def wait_for_order_fill(order_id, timeout_seconds=ORDER_FILL_TIMEOUT_SECONDS):
@@ -353,6 +539,10 @@ def reconcile_open_orders_with_alpaca():
 
 
 def place_buy_signal(ticker):
+    if is_shutdown_time():
+        print('Shutdown cutoff reached; skipping new buy signal')
+        return False
+
     mail_content = buy(ticker)
     if mail_content:
         mail_alert(mail_content, 0)
@@ -479,7 +669,7 @@ def check_params(tickers, run):
 
     for ticker in tickers_check:
         print("Fetching Data for:", ticker)
-        if run == False:
+        if run == False or is_shutdown_time():
             break
         df = data_by_ticker.get(ticker, pd.DataFrame())
         if df.empty:
@@ -569,6 +759,10 @@ def order_files(coin_to_buy, price_coin, highest_price, targetPositionSize, targ
 def buy(coin_to_buy: str, trade_cap_percent=trade_capital_percent):
     ensure_order_storage()
     coin_to_buy = normalize_symbol(coin_to_buy)
+
+    if is_shutdown_time():
+        print(f'Skipping {coin_to_buy}; shutdown cutoff has been reached')
+        return None
 
     if has_open_exposure(coin_to_buy):
         print(f'Skipping {coin_to_buy}; Alpaca or local state already has exposure')
@@ -754,6 +948,10 @@ def run_bot_cycle():
     print("Open Positions:", open_positions)
     print("Max Trades:", max_trades)
 
+    if is_shutdown_time():
+        print('Shutdown cutoff reached; skipping new buy generation')
+        return
+
     if open_positions < max_trades:
         run = True
         cooldown_tickers = update_ticker_cooldown()
@@ -775,7 +973,23 @@ def handle_cycle_error(error):
     except Exception as mail_err:
         print("Could not send alert mail:", mail_err)
     print("Sleeping before retrying...")
-    time.sleep(30)
+    retry_sleep_seconds = min(30, seconds_until_shutdown())
+    if retry_sleep_seconds > 0:
+        time.sleep(retry_sleep_seconds)
+
+
+def perform_scheduled_shutdown():
+    print('Scheduled shutdown cutoff reached; flattening all Alpaca positions')
+    closed_symbols = flatten_all_positions()
+    mail_alert(
+        "The Bot Flattened {} positions and Stopped Running on {} at {} ET".format(
+            len(closed_symbols),
+            dt.now(EASTERN_TZ).strftime("%Y-%m-%d"),
+            dt.now(EASTERN_TZ).strftime("%H:%M:%S")
+        ),
+        0
+    )
+    print('Scheduled shutdown complete')
 
 
 def mainNEW():
@@ -787,11 +1001,16 @@ def mainNEW():
 
     while True:
         try:
+            if is_shutdown_time():
+                perform_scheduled_shutdown()
+                return
             run_bot_cycle()
         except Exception as e:
             handle_cycle_error(e)
         finally:
-            time.sleep(LOOP_SLEEP_SECONDS)
+            sleep_seconds = get_loop_sleep_seconds()
+            if sleep_seconds > 0:
+                time.sleep(sleep_seconds)
             
 if __name__ == "__main__":
     mainNEW()

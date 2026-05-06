@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from datetime import datetime as dt
 
 import pandas as pd
 import pytest
@@ -13,6 +14,23 @@ def test_symbol_and_format_helpers():
     assert list(main.chunked(['A', 'B', 'C'], 2)) == [['A', 'B'], ['C']]
     assert main.format_qty(1.230000) == '1.23'
     assert main.format_price(1.235) == 1.24
+
+
+def test_shutdown_cutoff_uses_eastern_time():
+    before_cutoff = dt(2026, 1, 1, 15, 44, 59, tzinfo=main.EASTERN_TZ)
+    at_cutoff = dt(2026, 1, 1, 15, 45, 0, tzinfo=main.EASTERN_TZ)
+    after_cutoff = dt(2026, 1, 1, 15, 46, 0, tzinfo=main.EASTERN_TZ)
+
+    assert main.is_shutdown_time(before_cutoff) is False
+    assert main.is_shutdown_time(at_cutoff) is True
+    assert main.is_shutdown_time(after_cutoff) is True
+    assert main.seconds_until_shutdown(before_cutoff) == 1
+
+
+def test_loop_sleep_is_capped_to_shutdown_deadline(monkeypatch):
+    monkeypatch.setattr(main, 'LOOP_SLEEP_SECONDS', 60)
+    now = dt(2026, 1, 1, 15, 44, 30, tzinfo=main.EASTERN_TZ)
+    assert main.get_loop_sleep_seconds(now) == 30
 
 
 def test_ensure_order_storage_creates_csv_headers(temp_bot):
@@ -94,6 +112,56 @@ def test_sell_flow_cancels_protective_order_and_logs_sell(temp_bot, fake_api):
     orders = pd.read_csv(temp_bot.ORDERS_FILE)
     assert orders.iloc[0]['Type'] == 'sell'
     assert orders.iloc[0]['Sell Price'] == 110.0
+
+
+def test_flatten_all_positions_cancels_orders_closes_positions_and_clears_local_state(temp_bot, fake_api):
+    row = {
+        'Time': '2026-01-01 09:30:00',
+        'Ticker': 'AAPL',
+        'Type': 'buy',
+        'Buy Price': 100.0,
+        'Sell Price': '-',
+        'Highest Price': 110.0,
+        'Quantity': 2.0,
+        'Total': 200.0,
+        'Acc Balance': 10000.0,
+        'Target Price': 105.0,
+        'Stop Loss Price': 95.0,
+        'ActivateTrailingStopAt': 101.0,
+        'Order ID': 'buy-1',
+        'Order Status': 'filled',
+        'Protective Order ID': 'oco-1',
+    }
+    pd.DataFrame([row], columns=temp_bot.ORDER_COLUMNS).to_csv(temp_bot.OPEN_ORDERS_FILE, index=False)
+    fake_api.positions = [SimpleNamespace(symbol='AAPL', qty='2', avg_entry_price='100')]
+    fake_api.open_orders = [SimpleNamespace(id='oco-1', symbol='AAPL', side='sell')]
+    fake_api.latest_prices['AAPL'] = 111.0
+
+    closed_symbols = temp_bot.flatten_all_positions()
+
+    assert closed_symbols == {'AAPL'}
+    assert fake_api.canceled_order_ids == ['oco-1']
+    assert fake_api.positions == []
+    assert fake_api.submitted_orders[0].side == 'sell'
+    assert fake_api.submitted_orders[0].type == 'market'
+
+    open_orders = pd.read_csv(temp_bot.OPEN_ORDERS_FILE)
+    orders = pd.read_csv(temp_bot.ORDERS_FILE)
+    assert open_orders.empty
+    assert orders.iloc[0]['Type'] == 'shutdown_sell'
+    assert orders.iloc[0]['Ticker'] == 'AAPL'
+
+
+def test_buy_skips_after_shutdown_cutoff(temp_bot, monkeypatch):
+    monkeypatch.setattr(temp_bot, 'is_shutdown_time', lambda *args, **kwargs: True)
+    assert temp_bot.buy('AAPL') is None
+
+
+def test_run_bot_cycle_skips_buy_generation_after_shutdown_cutoff(temp_bot, monkeypatch):
+    monkeypatch.setattr(temp_bot, 'is_shutdown_time', lambda *args, **kwargs: True)
+    monkeypatch.setattr(temp_bot, 'check_params', lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError('should not run')))
+
+    temp_bot.run_bot_cycle()
 
 
 def test_wait_for_order_fill_raises_for_rejected_order(temp_bot, fake_api):

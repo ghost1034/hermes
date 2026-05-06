@@ -30,6 +30,8 @@ Example: If _sleep_time_between_trades_ is 100 seconds and the bot places a buy 
 
 The `end_date` config supports `"now"`/`"today"` for live trading or a parseable historical date for historical data pulls.
 
+The bot performs a scheduled shutdown at 3:45 PM America/New_York. At the cutoff it cancels open Alpaca orders, submits market orders to flatten every Alpaca position, updates the local order CSVs for successfully closed symbols, sends the shutdown alert, and exits.
+
 The bot can load tickers from Alpaca's market movers screener on startup using `dynamic_tickers` in `ConfigFile.txt`. The default `market_data_feed` is `"iex"` for Alpaca's free Basic tier, and historical bars are requested in batches so the bot can evaluate more symbols without one API call per ticker. `AUTH/Tickers.txt` remains the fallback list.
 
 ## Testing
