@@ -8,10 +8,10 @@
         "max_investment_amount": 1000000,
         "max_trades_active": 3,
         "trade_capital_percent": 5, 
-        "stop_loss": 0.4,
-        "trailing_stop": 0.35,
-        "activate_trailing_stop_loss_at": 0.5,
-        "limit_price": 0.8,
+        "stop_loss": 1.5,
+        "trailing_stop": 1.0,
+        "activate_trailing_stop_loss_at": 1.5,
+        "limit_price": 3.0,
         "sleep_time_between_trades": 300,
 
         "dynamic_tickers": {
@@ -19,7 +19,7 @@
                 "top_per_side": 50,
                 "include_gainers": true,
                 "include_losers": true,
-                "min_price": null,
+                "min_price": 15.0,
                 "max_price": null,
                 "bar_request_chunk_size": 100
         },
@@ -51,7 +51,7 @@
 
                 "EMA": true,
                 "EMA_params": {
-                        "ema_period": 20,
+                        "ema_period": 200,
                         "source": "Close",
                         "smoothing": 2
                 }
