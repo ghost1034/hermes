@@ -78,7 +78,7 @@ def _parse_start_date_days(value):
 
 def _validate_config(config):
     required_keys = [
-        'investment_amount', 'max_trades_active', 'trade_capital_percent',
+        'max_investment_amount', 'max_trades_active', 'trade_capital_percent',
         'stop_loss', 'trailing_stop', 'limit_price',
         'activate_trailing_stop_loss_at', 'sleep_time_between_trades',
         'start_date', 'end_date', 'timeframe', 'candle_lookback_period', 'indicators'
@@ -87,7 +87,7 @@ def _validate_config(config):
     if missing:
         raise ValueError(f'Missing config keys: {", ".join(missing)}')
 
-    _require_number('investment_amount', config['investment_amount'], minimum=0)
+    _require_number('max_investment_amount', config['max_investment_amount'], minimum=0)
     _require_int('max_trades_active', config['max_trades_active'], minimum=1)
     _require_number('trade_capital_percent', config['trade_capital_percent'], minimum=0, maximum=100)
     _require_number('stop_loss', config['stop_loss'], minimum=0)
@@ -169,7 +169,7 @@ global max_trades
 global trade_capital_percent
 global stop_loss
 global trailing_stop
-investment_amount = config["investment_amount"]
+max_investment_amount = config["max_investment_amount"]
 max_trades = config["max_trades_active"]
 trade_capital_percent = config["trade_capital_percent"]
 stop_loss = config["stop_loss"]

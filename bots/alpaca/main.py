@@ -822,7 +822,7 @@ def buy(coin_to_buy: str, trade_cap_percent=trade_capital_percent):
         return None
 
     cash_available = min(
-        investment_amount,
+        max_investment_amount,
         get_account_float('cash'),
         get_account_float('buying_power')
     )
