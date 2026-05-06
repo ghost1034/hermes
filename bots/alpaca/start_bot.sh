@@ -1,6 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/.env"
+LOG_FILE="$SCRIPT_DIR/daytrader.log"
+
+exec >> "$LOG_FILE" 2>&1
 
 if [ -f "$ENV_FILE" ]; then
   while IFS= read -r line || [ -n "$line" ]; do
@@ -18,7 +21,7 @@ fi
 
 # Run the bot
 cd "$SCRIPT_DIR" || exit 1
-python3 "$SCRIPT_DIR/main.py" >> "$SCRIPT_DIR/daytrader.log" 2>&1
+python3 -u "$SCRIPT_DIR/main.py"
 EXIT_CODE=$?
 
 # If the bot exits with a non-zero code, send an alert
