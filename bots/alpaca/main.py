@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+import math
 
 from datetime import datetime as dt
 from datetime import timedelta
@@ -48,6 +49,8 @@ class LazyAlpacaAPI:
 
 api = LazyAlpacaAPI()
 tickers = []
+_equity_asset_map = None
+_equity_asset_map_api_id = None
 
 ORDERS_DIR = 'ORDERS'
 ORDERS_FILE = os.path.join(ORDERS_DIR, 'Orders.csv')
@@ -181,17 +184,45 @@ def price_passes_dynamic_filter(price):
     return True
 
 
-def get_tradable_equity_symbols():
+def get_equity_asset_map():
+    global _equity_asset_map
+    global _equity_asset_map_api_id
+
+    current_api_id = id(api)
+    if _equity_asset_map is not None and _equity_asset_map_api_id == current_api_id:
+        return _equity_asset_map
+
     try:
         assets = api.list_assets(status='active', asset_class='us_equity')
     except Exception as e:
-        print('Error fetching Alpaca tradable assets; using screener symbols without asset filtering:', e)
+        print('Error fetching Alpaca asset metadata; using symbols without asset filtering:', e)
+        return None
+
+    _equity_asset_map = {}
+    for asset in assets:
+        symbol = normalize_symbol(getattr(asset, 'symbol', ''))
+        if symbol:
+            _equity_asset_map[symbol] = asset
+    _equity_asset_map_api_id = current_api_id
+    return _equity_asset_map
+
+
+def get_equity_asset(symbol):
+    asset_map = get_equity_asset_map()
+    if asset_map is None:
+        return None
+    return asset_map.get(normalize_symbol(symbol))
+
+
+def get_tradable_equity_symbols():
+    asset_map = get_equity_asset_map()
+    if asset_map is None:
         return None
 
     tradable_symbols = set()
-    for asset in assets:
+    for symbol, asset in asset_map.items():
         if getattr(asset, 'tradable', False):
-            tradable_symbols.add(normalize_symbol(asset.symbol))
+            tradable_symbols.add(symbol)
     return tradable_symbols
 
 
@@ -251,6 +282,28 @@ def format_qty(quantity):
 
 def format_price(price):
     return round(float(price), 2)
+
+
+def prepare_buy_quantity(symbol, quantity):
+    quantity = float(quantity)
+    if quantity <= 0:
+        return 0
+
+    asset = get_equity_asset(symbol)
+    if asset is None or getattr(asset, 'fractionable', False):
+        return quantity
+
+    whole_share_quantity = math.floor(quantity)
+    if whole_share_quantity <= 0:
+        print(f'Skipping {normalize_symbol(symbol)}; asset is not fractionable and buy amount is below one share')
+        return 0
+
+    if whole_share_quantity != quantity:
+        print(
+            f'Adjusting {normalize_symbol(symbol)} quantity from {format_qty(quantity)} '
+            f'to {whole_share_quantity}; asset does not support fractional trading'
+        )
+    return float(whole_share_quantity)
 
 
 def get_account_float(attribute):
@@ -780,6 +833,7 @@ def buy(coin_to_buy: str, trade_cap_percent=trade_capital_percent):
 
     estimated_price = api.get_latest_trade(coin_to_buy, feed=market_data_feed).p
     targetPositionSize = float(buy_amount) / float(estimated_price)
+    targetPositionSize = prepare_buy_quantity(coin_to_buy, targetPositionSize)
     if targetPositionSize <= 0:
         print(f'Skipping {coin_to_buy}; calculated quantity is zero')
         return None

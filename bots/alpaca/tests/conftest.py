@@ -43,11 +43,14 @@ class FakeAPI:
     def submit_order(self, **kwargs):
         order_id = f'order-{len(self.submitted_orders) + 1}'
         order = SimpleNamespace(id=order_id, status='accepted', **kwargs)
-        self.submitted_orders.append(order)
-
         side = kwargs.get('side')
         symbol = kwargs.get('symbol')
         qty = kwargs.get('qty', '1')
+        asset = self.get_asset(symbol)
+        if asset is not None and not getattr(asset, 'fractionable', False) and not float(qty).is_integer():
+            raise RuntimeError(f'{symbol} does not support fractional trading')
+
+        self.submitted_orders.append(order)
         fill_price = self.latest_prices.get(symbol, 100.0)
         if kwargs.get('type') == 'market':
             self.apply_market_fill(symbol, side, float(qty), fill_price)
@@ -60,6 +63,12 @@ class FakeAPI:
             filled_avg_price=str(fill_price),
         )
         return order
+
+    def get_asset(self, symbol):
+        for asset in self.assets:
+            if asset.symbol == symbol:
+                return asset
+        return None
 
     def apply_market_fill(self, symbol, side, qty, fill_price):
         delta = qty if side == 'buy' else -qty

@@ -102,6 +102,33 @@ def test_buy_flow_submits_market_and_protective_orders(temp_bot, fake_api):
     assert cooldown.iloc[0]['Ticker'] == 'AAPL'
 
 
+def test_buy_keeps_fractional_quantity_for_fractionable_asset(temp_bot, fake_api):
+    fake_api.assets = [SimpleNamespace(symbol='FRACT', tradable=True, fractionable=True)]
+    fake_api.latest_prices['FRACT'] = 90.0
+
+    temp_bot.buy('FRACT', trade_cap_percent=5)
+
+    assert fake_api.submitted_orders[0].qty == '5.555556'
+
+
+def test_buy_rounds_down_for_non_fractionable_asset(temp_bot, fake_api):
+    fake_api.assets = [SimpleNamespace(symbol='WHOLE', tradable=True, fractionable=False)]
+    fake_api.latest_prices['WHOLE'] = 90.0
+
+    mail = temp_bot.buy('WHOLE', trade_cap_percent=5)
+
+    assert mail == 'TRADE ALERT: BUY Order Filled for 5.0 WHOLE at $90.0'
+    assert fake_api.submitted_orders[0].qty == '5'
+
+
+def test_buy_skips_non_fractionable_asset_when_under_one_share(temp_bot, fake_api):
+    fake_api.assets = [SimpleNamespace(symbol='EXPENSIVE', tradable=True, fractionable=False)]
+    fake_api.latest_prices['EXPENSIVE'] = 1000.0
+
+    assert temp_bot.buy('EXPENSIVE', trade_cap_percent=5) is None
+    assert fake_api.submitted_orders == []
+
+
 def test_sell_flow_cancels_protective_order_and_logs_sell(temp_bot, fake_api):
     fake_api.latest_prices['AAPL'] = 110.0
     fake_api.open_orders = [SimpleNamespace(id='protect-1', symbol='AAPL', side='sell')]
