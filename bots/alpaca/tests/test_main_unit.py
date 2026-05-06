@@ -91,8 +91,13 @@ def test_buy_flow_submits_market_and_protective_orders(temp_bot, fake_api):
     assert mail == 'TRADE ALERT: BUY Order Filled for 5.0 AAPL at $100.0'
     assert fake_api.submitted_orders[0].side == 'buy'
     assert fake_api.submitted_orders[0].symbol == 'AAPL'
-    assert fake_api.submitted_orders[1].side == 'sell'
-    assert fake_api.submitted_orders[1].order_class == 'oco'
+    protective_order = fake_api.submitted_orders[1]
+    assert protective_order.side == 'sell'
+    assert protective_order.order_class == 'oco'
+    assert protective_order.time_in_force == 'day'
+    assert protective_order.take_profit == {'limit_price': temp_bot.format_price(100 * (1 + temp_bot.limit_price * 0.01))}
+    assert protective_order.stop_loss == {'stop_price': temp_bot.format_price(100 * (1 - temp_bot.stop_loss * 0.01))}
+    assert not hasattr(protective_order, 'limit_price')
 
     orders = pd.read_csv(temp_bot.ORDERS_FILE)
     open_orders = pd.read_csv(temp_bot.OPEN_ORDERS_FILE)

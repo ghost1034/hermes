@@ -559,9 +559,9 @@ def submit_protective_order(symbol, quantity, target_price, stop_loss_price):
             qty=format_qty(quantity),
             side='sell',
             type='limit',
-            time_in_force='gtc',
-            limit_price=format_price(target_price),
+            time_in_force='day',
             order_class='oco',
+            take_profit={'limit_price': format_price(target_price)},
             stop_loss={'stop_price': format_price(stop_loss_price)}
         )
         return order.id

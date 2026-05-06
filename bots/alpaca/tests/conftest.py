@@ -46,6 +46,15 @@ class FakeAPI:
         side = kwargs.get('side')
         symbol = kwargs.get('symbol')
         qty = kwargs.get('qty', '1')
+        if kwargs.get('order_class') == 'oco':
+            take_profit = kwargs.get('take_profit') or {}
+            stop_loss = kwargs.get('stop_loss') or {}
+            if 'limit_price' not in take_profit:
+                raise RuntimeError('oco orders require take_profit.limit_price')
+            if 'stop_price' not in stop_loss:
+                raise RuntimeError('oco orders require stop_loss.stop_price')
+        if kwargs.get('time_in_force') == 'gtc' and not float(qty).is_integer():
+            raise RuntimeError('fractional orders require time_in_force=day')
         asset = self.get_asset(symbol)
         if asset is not None and not getattr(asset, 'fractionable', False) and not float(qty).is_integer():
             raise RuntimeError(f'{symbol} does not support fractional trading')
