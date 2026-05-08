@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     function escapeHtml(unsafe) {
-        return (unsafe || '').toString()
+        return (unsafe ?? '').toString()
              .replace(/&/g, "&amp;")
              .replace(/</g, "&lt;")
              .replace(/>/g, "&gt;")
@@ -52,15 +52,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadFile(file) {
-        if (file.path && (file.path.toLowerCase().startsWith('javascript:') || file.path.toLowerCase().startsWith('data:'))) {
-            throw new Error('Invalid file path');
-        }
         viewerTitle.textContent = file.path;
         viewerContainer.innerHTML = '<p class="text-gray-500 animate-pulse">Loading content...</p>';
-        downloadBtn.href = file.path;
-        downloadBtn.classList.remove('hidden');
-
+        downloadBtn.classList.add('hidden');
+        
         try {
+            const normalizedPath = (file.path || '').trim().toLowerCase();
+            if (normalizedPath.startsWith('javascript:') || normalizedPath.startsWith('data:')) {
+                throw new Error('Invalid file path');
+            }
+            
+            downloadBtn.href = file.path;
+            downloadBtn.classList.remove('hidden');
+
             const response = await fetch(file.path);
             if (!response.ok) throw new Error('Failed to fetch file');
             const content = await response.text();
