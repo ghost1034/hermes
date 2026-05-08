@@ -1,0 +1,29 @@
+name: Update Pipeline Manifest
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - 'pipelines/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        
+    - name: Generate Manifest
+      run: python pipelines/generate_manifest.py
+      
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add pipelines/manifest.json
+        # Only commit if there are changes
+        git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update pipeline manifest" && git push)
