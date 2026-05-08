@@ -52,6 +52,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadFile(file) {
+        if (file.path && (file.path.toLowerCase().startsWith('javascript:') || file.path.toLowerCase().startsWith('data:'))) {
+            throw new Error('Invalid file path');
+        }
         viewerTitle.textContent = file.path;
         viewerContainer.innerHTML = '<p class="text-gray-500 animate-pulse">Loading content...</p>';
         downloadBtn.href = file.path;
@@ -63,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const content = await response.text();
             
             if (file.type === '.md') {
-                viewerContainer.innerHTML = `<div class="prose max-w-none bg-white p-8 rounded shadow-sm">${marked.parse(escapeHtml(content))}</div>`;
+                viewerContainer.innerHTML = `<div class="prose max-w-none bg-white p-8 rounded shadow-sm">${DOMPurify.sanitize(marked.parse(content))}</div>`;
             } else if (file.type === '.csv') {
                 const parsed = Papa.parse(content, { header: true, skipEmptyLines: true });
                 let tableHtml = '<div class="overflow-x-auto bg-white rounded shadow-sm border border-gray-200"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>';
@@ -75,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     parsed.data.forEach(row => {
                         tableHtml += '<tr class="hover:bg-gray-50 transition-colors">';
                         parsed.meta.fields.forEach(field => {
-                            tableHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${escapeHtml(row[field] || '')}</td>`;
+                            tableHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${escapeHtml(row[field] !== undefined ? row[field] : '')}</td>`;
                         });
                         tableHtml += '</tr>';
                     });
