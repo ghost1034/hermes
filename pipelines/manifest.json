@@ -40,21 +40,6 @@
       "type": ".txt"
     },
     {
-      "name": "draft_jyac.json",
-      "path": "pipelines/b2b_lead_gen/draft_jyac.json",
-      "type": ".json"
-    },
-    {
-      "name": "step1_results.json",
-      "path": "pipelines/b2b_lead_gen/step1_results.json",
-      "type": ".json"
-    },
-    {
-      "name": "draft_asl.json",
-      "path": "pipelines/b2b_lead_gen/draft_asl.json",
-      "type": ".json"
-    },
-    {
       "name": "leads.csv",
       "path": "pipelines/b2b_lead_gen/leads.csv",
       "type": ".csv"
