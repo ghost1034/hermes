@@ -17,14 +17,20 @@ Use `delegate_task` in batch mode (with a `tasks` array) to spawn an `Analyst` s
 
 **Step 2: Compile & Edit (Delegate to Editor)**
 Wait for Step 1 to finish. Then, use `delegate_task` to spawn a single `Editor` subagent.
-- Toolsets: `['file']`
+- Toolsets: `[]` (None needed)
 - Role: `leaf`
-- Goal: "Take these JSON insights: [INSERT OUTPUTS FROM STEP 1]. Format them into a premium, institutional-grade newsletter draft section. Adopt a sharp, VC-firm/McKinsey tone. Avoid emojis. Structure each entry with headers: 'Strategic Imperative', 'Technical TL;DR', and 'Commercial Thesis & Moat'. Append the final markdown content to `~/pipelines/daas_newsletter/newsletter_drafts.md` using the `file` tool. Do not overwrite the file."
+- Goal: "Take these JSON insights: [INSERT OUTPUTS FROM STEP 1]. Format them into a premium, institutional-grade newsletter draft section. Adopt a sharp, VC-firm/McKinsey tone. Avoid emojis. Structure each entry with headers: 'Strategic Imperative', 'Technical TL;DR', and 'Commercial Thesis & Moat'. Return the final formatted markdown as your summary."
+- *Note:* Do NOT assign the Editor the `file` toolsets, and do NOT tell it to append the file. Leaf agents cannot safely append files without overwriting them.
 
-**Step 3: Deliver Alert to User**
+**Step 3: Save Draft & Update Tracker**
+- Read the Editor's returned summary.
+- Use the `execute_code` tool to safely append the Editor's markdown output to `/home/ianstewart/pipelines/daas_newsletter/newsletter_drafts.md`.
+- In the same python script, append the unique paper IDs/Links processed in this batch to `/home/ianstewart/pipelines/daas_newsletter/seen_papers.txt`.
+
+**Step 4: Deliver Alert to User**
 Use the `send_message` tool to deliver a notification to `telegram`:
 ```
 📰 **New DaaS Newsletter Draft Generated!**
 [Number] new AI papers analyzed for startup opportunities. 
-The draft has been appended to your local file: `~/pipelines/daas_newsletter/newsletter_drafts.md`
+The draft has been appended to your local file: `/home/ianstewart/pipelines/daas_newsletter/newsletter_drafts.md`
 ```
