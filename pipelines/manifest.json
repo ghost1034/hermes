@@ -1,0 +1,85 @@
+{
+  "bounty_sniper": [
+    {
+      "name": "pipeline_instructions.md",
+      "path": "pipelines/bounty_sniper/pipeline_instructions.md",
+      "type": ".md"
+    },
+    {
+      "name": "seen_jobs.txt",
+      "path": "pipelines/bounty_sniper/seen_jobs.txt",
+      "type": ".txt"
+    }
+  ],
+  "scholarship_data": [
+    {
+      "name": "pipeline_instructions.md",
+      "path": "pipelines/scholarship_data/pipeline_instructions.md",
+      "type": ".md"
+    },
+    {
+      "name": "user_profile.md",
+      "path": "pipelines/scholarship_data/user_profile.md",
+      "type": ".md"
+    },
+    {
+      "name": "processed_scholarships.txt",
+      "path": "pipelines/scholarship_data/processed_scholarships.txt",
+      "type": ".txt"
+    }
+  ],
+  "b2b_lead_gen": [
+    {
+      "name": "pipeline_instructions.md",
+      "path": "pipelines/b2b_lead_gen/pipeline_instructions.md",
+      "type": ".md"
+    },
+    {
+      "name": "processed_domains.txt",
+      "path": "pipelines/b2b_lead_gen/processed_domains.txt",
+      "type": ".txt"
+    },
+    {
+      "name": "draft_jyac.json",
+      "path": "pipelines/b2b_lead_gen/draft_jyac.json",
+      "type": ".json"
+    },
+    {
+      "name": "step1_results.json",
+      "path": "pipelines/b2b_lead_gen/step1_results.json",
+      "type": ".json"
+    },
+    {
+      "name": "draft_asl.json",
+      "path": "pipelines/b2b_lead_gen/draft_asl.json",
+      "type": ".json"
+    },
+    {
+      "name": "leads.csv",
+      "path": "pipelines/b2b_lead_gen/leads.csv",
+      "type": ".csv"
+    },
+    {
+      "name": "target_queries.txt",
+      "path": "pipelines/b2b_lead_gen/target_queries.txt",
+      "type": ".txt"
+    }
+  ],
+  "daas_newsletter": [
+    {
+      "name": "pipeline_instructions.md",
+      "path": "pipelines/daas_newsletter/pipeline_instructions.md",
+      "type": ".md"
+    },
+    {
+      "name": "seen_papers.txt",
+      "path": "pipelines/daas_newsletter/seen_papers.txt",
+      "type": ".txt"
+    },
+    {
+      "name": "newsletter_drafts.md",
+      "path": "pipelines/daas_newsletter/newsletter_drafts.md",
+      "type": ".md"
+    }
+  ]
+}
