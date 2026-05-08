@@ -1,11 +1,10 @@
-import os
+import pandas as pd
 import alpaca_trade_api as tradeapi
-from dotenv import load_dotenv
 
-load_dotenv(os.path.expanduser('~/bots/alpaca/.env'))
-api = tradeapi.REST()
+# Test DataFrame groupby
+df = pd.DataFrame({'close': [1, 2]}, index=pd.MultiIndex.from_tuples([('AAPL', '2021'), ('AAPL', '2022')], names=['symbol', 'timestamp']))
 try:
-    movers = api.get_movers()
-    print(movers)
+    for sym, g in df.groupby('symbol'):
+         print(sym)
 except Exception as e:
-    print(e)
+    print("Error:", e)

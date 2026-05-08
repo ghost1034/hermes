@@ -6,7 +6,14 @@ from datetime import datetime, timedelta, timezone
 
 def get_market_context():
     load_dotenv(os.path.expanduser('~/bots/alpaca/.env'))
-    api = tradeapi.REST()
+    
+    API_KEY = os.environ.get('APCA_API_KEY_ID')
+    API_SECRET = os.environ.get('APCA_API_SECRET_KEY')
+    if not API_KEY or not API_SECRET:
+        print("Critical Error: Missing APCA_API_KEY_ID or APCA_API_SECRET_KEY in environment.")
+        return
+        
+    api = tradeapi.REST(key_id=API_KEY, secret_key=API_SECRET)
     
     account = api.get_account()
     print(f"--- Account Info ---")
@@ -23,8 +30,6 @@ def get_market_context():
     print("\n--- Top Intraday Momentum (Last 15 Minutes) ---")
     try:
         # 1. Broad Net: Get today's top gainers
-        API_KEY = os.environ.get('APCA_API_KEY_ID')
-        API_SECRET = os.environ.get('APCA_API_SECRET_KEY')
         headers = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': API_SECRET}
         url = "https://data.alpaca.markets/v1beta1/screener/stocks/movers?top=50"
         
