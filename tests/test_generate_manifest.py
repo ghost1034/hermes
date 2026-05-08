@@ -41,3 +41,20 @@ def test_generate_manifest_missing_dir(tmp_path):
     
     with pytest.raises(FileNotFoundError):
         generate_manifest(pipelines_dir, manifest_path)
+
+def test_generate_manifest_creates_output_dir(tmp_path):
+    pipelines_dir = tmp_path / "pipelines"
+    pipelines_dir.mkdir()
+    test_dir = pipelines_dir / "test_dir"
+    test_dir.mkdir()
+    (test_dir / "file.txt").write_text("content")
+    
+    # Output path in a non-existent subdirectory
+    manifest_path = tmp_path / "new" / "nested" / "dir" / "manifest.json"
+    
+    generate_manifest(pipelines_dir, manifest_path)
+    
+    assert manifest_path.parent.exists()
+    assert manifest_path.exists()
+    data = json.loads(manifest_path.read_text())
+    assert "test_dir" in data

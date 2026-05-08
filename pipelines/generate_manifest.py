@@ -25,11 +25,8 @@ def generate_manifest(base_dir: Path, output_path: Path):
                 manifest[item.name] = files
                 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        with open(output_path, 'w') as f:
-            json.dump(manifest, f, indent=2)
-    except OSError as e:
-        print(f"Error writing to {output_path}: {e}")
+    with open(output_path, 'w') as f:
+        json.dump(manifest, f, indent=2)
 
 if __name__ == '__main__':
     pipelines_dir = Path(__file__).parent
