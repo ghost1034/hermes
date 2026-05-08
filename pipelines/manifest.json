@@ -30,6 +30,11 @@
   ],
   "ai_alpaca_trader": [
     {
+      "name": "PLAN_INTRADAY_MOMENTUM.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_INTRADAY_MOMENTUM.md",
+      "type": ".md"
+    },
+    {
       "name": "execute_trade.py",
       "path": "pipelines/ai_alpaca_trader/execute_trade.py",
       "type": ".py"
