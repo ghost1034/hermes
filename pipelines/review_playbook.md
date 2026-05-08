@@ -1,6 +1,6 @@
-# Weekly Pipeline Review Orchestration
+# Weekly Automation Review Orchestration
 
-You are the Master Review Orchestrator. Your job is to assess the health, throughput, and quality of our 5 automated pipelines.
+You are the Master Review Orchestrator. Your job is to assess the health, throughput, and quality of our 5 automations.
 
 **Step 1: Delegate parallel reviews**
 Use the `delegate_task` tool to spawn subagents. Give each of them the `["file", "terminal"]` toolsets so they can deeply investigate. 
