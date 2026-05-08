@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    function escapeHtml(unsafe) {
+        return (unsafe || '').toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
     const sidebar = document.getElementById('sidebar-content');
     const viewerContainer = document.getElementById('viewer-container');
     const viewerTitle = document.getElementById('viewer-title');
@@ -14,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const [pipeline, files] of Object.entries(manifest)) {
             const section = document.createElement('div');
             section.className = 'mb-4';
-            section.innerHTML = `<h3 class="font-semibold text-gray-700 uppercase text-xs mb-2 tracking-wider">${pipeline}</h3>`;
+            section.innerHTML = `<h3 class="font-semibold text-gray-700 uppercase text-xs mb-2 tracking-wider">${escapeHtml(pipeline)}</h3>`;
             
             const ul = document.createElement('ul');
             ul.className = 'space-y-1';
@@ -40,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             sidebar.appendChild(section);
         }
     } catch (error) {
-        sidebar.innerHTML = `<p class="text-red-500 text-sm">Failed to load pipelines: ${error.message}</p>`;
+        sidebar.innerHTML = `<p class="text-red-500 text-sm">Failed to load pipelines: ${escapeHtml(error.message)}</p>`;
     }
 
     async function loadFile(file) {
@@ -55,19 +63,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const content = await response.text();
             
             if (file.type === '.md') {
-                viewerContainer.innerHTML = `<div class="prose max-w-none bg-white p-8 rounded shadow-sm">${marked.parse(content)}</div>`;
+                viewerContainer.innerHTML = `<div class="prose max-w-none bg-white p-8 rounded shadow-sm">${marked.parse(escapeHtml(content))}</div>`;
             } else if (file.type === '.csv') {
                 const parsed = Papa.parse(content, { header: true, skipEmptyLines: true });
                 let tableHtml = '<div class="overflow-x-auto bg-white rounded shadow-sm border border-gray-200"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>';
                 if (parsed.meta.fields && parsed.meta.fields.length > 0) {
                     parsed.meta.fields.forEach(field => {
-                        tableHtml += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${field}</th>`;
+                        tableHtml += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${escapeHtml(field)}</th>`;
                     });
                     tableHtml += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
                     parsed.data.forEach(row => {
                         tableHtml += '<tr class="hover:bg-gray-50 transition-colors">';
                         parsed.meta.fields.forEach(field => {
-                            tableHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${row[field] || ''}</td>`;
+                            tableHtml += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${escapeHtml(row[field] || '')}</td>`;
                         });
                         tableHtml += '</tr>';
                     });
@@ -79,16 +87,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else if (file.type === '.json') {
                 try {
                     const parsed = JSON.parse(content);
-                    viewerContainer.innerHTML = `<pre class="bg-gray-900 text-gray-100 p-6 rounded overflow-auto shadow-sm text-sm font-mono leading-relaxed"><code>${JSON.stringify(parsed, null, 2)}</code></pre>`;
+                    const pre = document.createElement('pre');
+                    pre.className = 'bg-gray-900 text-gray-100 p-6 rounded overflow-auto shadow-sm text-sm font-mono leading-relaxed';
+                    const code = document.createElement('code');
+                    code.textContent = JSON.stringify(parsed, null, 2);
+                    pre.appendChild(code);
+                    viewerContainer.innerHTML = '';
+                    viewerContainer.appendChild(pre);
                 } catch {
                     // Fallback to text if malformed
-                    viewerContainer.innerHTML = `<pre class="bg-white text-gray-800 p-6 rounded overflow-auto shadow-sm border text-sm font-mono leading-relaxed">${content}</pre>`;
+                    const pre = document.createElement('pre');
+                    pre.className = 'bg-white text-gray-800 p-6 rounded overflow-auto shadow-sm border text-sm font-mono leading-relaxed';
+                    pre.textContent = content;
+                    viewerContainer.innerHTML = '';
+                    viewerContainer.appendChild(pre);
                 }
             } else {
-                viewerContainer.innerHTML = `<pre class="bg-white text-gray-800 p-6 rounded overflow-auto shadow-sm border border-gray-200 text-sm font-mono leading-relaxed whitespace-pre-wrap">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+                const pre = document.createElement('pre');
+                pre.className = 'bg-white text-gray-800 p-6 rounded overflow-auto shadow-sm border border-gray-200 text-sm font-mono leading-relaxed whitespace-pre-wrap';
+                pre.textContent = content;
+                viewerContainer.innerHTML = '';
+                viewerContainer.appendChild(pre);
             }
         } catch (error) {
-            viewerContainer.innerHTML = `<div class="bg-red-50 text-red-700 p-4 rounded border border-red-200"><strong class="font-bold">Error rendering file:</strong> ${error.message}</div>`;
+            viewerContainer.innerHTML = `<div class="bg-red-50 text-red-700 p-4 rounded border border-red-200"><strong class="font-bold">Error rendering file:</strong> ${escapeHtml(error.message)}</div>`;
         }
     }
 });
