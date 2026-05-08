@@ -80,6 +80,11 @@
       "type": ".py"
     },
     {
+      "name": "flatten_positions.py",
+      "path": "pipelines/ai_alpaca_trader/flatten_positions.py",
+      "type": ".py"
+    },
+    {
       "name": "get_prices2.py",
       "path": "pipelines/ai_alpaca_trader/get_prices2.py",
       "type": ".py"
