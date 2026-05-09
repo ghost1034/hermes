@@ -13,7 +13,7 @@ def execute_oco_trade(symbol, qty, limit_price, take_profit, stop_loss):
             qty=qty,
             side='buy',
             type='limit',
-            time_in_force='day',
+            time_in_force='gtc',
             limit_price=limit_price,
             order_class='bracket',
             take_profit={'limit_price': take_profit},
