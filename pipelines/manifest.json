@@ -40,11 +40,6 @@
       "type": ".py"
     },
     {
-      "name": "get_google_finance_2.py",
-      "path": "pipelines/ai_alpaca_trader/get_google_finance_2.py",
-      "type": ".py"
-    },
-    {
       "name": "market_scanner.py",
       "path": "pipelines/ai_alpaca_trader/market_scanner.py",
       "type": ".py"
@@ -55,43 +50,13 @@
       "type": ".md"
     },
     {
-      "name": "get_google_finance.py",
-      "path": "pipelines/ai_alpaca_trader/get_google_finance.py",
-      "type": ".py"
-    },
-    {
-      "name": "search_news.py",
-      "path": "pipelines/ai_alpaca_trader/search_news.py",
-      "type": ".py"
-    },
-    {
       "name": "PLAYBOOK.md",
       "path": "pipelines/ai_alpaca_trader/PLAYBOOK.md",
       "type": ".md"
     },
     {
-      "name": "test_alpaca.py",
-      "path": "pipelines/ai_alpaca_trader/test_alpaca.py",
-      "type": ".py"
-    },
-    {
-      "name": "get_prices.py",
-      "path": "pipelines/ai_alpaca_trader/get_prices.py",
-      "type": ".py"
-    },
-    {
-      "name": "search.py",
-      "path": "pipelines/ai_alpaca_trader/search.py",
-      "type": ".py"
-    },
-    {
       "name": "flatten_positions.py",
       "path": "pipelines/ai_alpaca_trader/flatten_positions.py",
-      "type": ".py"
-    },
-    {
-      "name": "get_prices2.py",
-      "path": "pipelines/ai_alpaca_trader/get_prices2.py",
       "type": ".py"
     }
   ],
