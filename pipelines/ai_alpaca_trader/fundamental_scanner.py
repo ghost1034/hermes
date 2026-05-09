@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import alpaca_trade_api as tradeapi
 import os
+import requests
 from dotenv import load_dotenv
 
 def get_portfolio():
@@ -25,12 +26,36 @@ def get_portfolio():
         print(f"Could not load Alpaca portfolio: {e}\n")
 
 def scan_fundamentals():
-    # Basket of notable mid/large cap tickers to scan
-    tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "AMD", "INTC", 
-               "CRM", "ADBE", "PYPL", "SQ", "DIS", "NFLX", "UBER", "ABNB", "SPOT", "PLTR"]
+    load_dotenv(os.path.expanduser(os.environ.get('ENV_PATH', '~/bots/alpaca/.env')))
+    api_key = os.environ.get('APCA_API_KEY_ID')
+    api_secret = os.environ.get('APCA_API_SECRET_KEY')
     
     print("--- Fundamental Screener ---")
-    print("Scanning basket for Value/Growth metrics (This takes a moment)...\n")
+    print("Fetching most active stocks from Alpaca...")
+    
+    # Fetch most active stocks
+    url = "https://data.alpaca.markets/v1beta1/screener/stocks/most-actives?by=volume&top=100"
+    headers = {'APCA-API-KEY-ID': api_key, 'APCA-API-SECRET-KEY': api_secret}
+    
+    tickers = []
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        most_actives = response.json().get('most_actives', [])
+        
+        for item in most_actives:
+            sym = item['symbol']
+            # Filter out warrants, rights, or preferred shares
+            if '.' in sym or (len(sym) > 4 and sym.endswith('W')):
+                continue
+            tickers.append(sym)
+            if len(tickers) >= 50: # Limit to top 50 to manage yfinance execution time
+                break
+    except Exception as e:
+        print(f"Error fetching active tickers: {e}")
+        return
+
+    print(f"Scanning {len(tickers)} active tickers for Value/Growth metrics (This takes a moment)...\n")
     
     results = []
     for ticker in tickers:
@@ -44,6 +69,7 @@ def scan_fundamentals():
             peg = info.get('pegRatio', None)
             pb = info.get('priceToBook', None)
             
+            # $10 floor filter
             if price is None or price < 10.0:
                 continue
                 
@@ -56,19 +82,23 @@ def scan_fundamentals():
                 'P/B': round(pb, 2) if pb else 'N/A'
             })
         except Exception as e:
-            print(f"Error fetching data for {ticker}: {e}")
+            # yfinance often throws errors on volatile/new tickers; fail silently on individual tickers
             continue
             
     df = pd.DataFrame(results)
     if df.empty:
-        print("No results found.")
+        print("No results found matching fundamental criteria.")
         return
+        
     df_valid = df[df['PEG'] != 'N/A'].copy()
     df_valid['PEG'] = pd.to_numeric(df_valid['PEG'])
     df_sorted = df_valid[df_valid['PEG'] > 0].sort_values(by='PEG').head(5)
     
     print("Top 5 Fundamental Setups (Sorted by Lowest Positive PEG Ratio):")
-    print(df_sorted.to_string(index=False))
+    if df_sorted.empty:
+        print("No stocks passed the PEG ratio filters.")
+    else:
+        print(df_sorted.to_string(index=False))
 
 if __name__ == "__main__":
     get_portfolio()
