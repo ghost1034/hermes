@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 def get_portfolio():
-    load_dotenv(os.path.expanduser('~/bots/alpaca/.env'))
+    load_dotenv(os.path.expanduser(os.environ.get('ENV_PATH', '~/bots/alpaca/.env')))
     try:
         api = tradeapi.REST()
         account = api.get_account()
@@ -38,13 +38,13 @@ def scan_fundamentals():
             stock = yf.Ticker(ticker)
             info = stock.info
             
-            price = info.get('currentPrice', 0)
-            pe = info.get('trailingPE', 0)
-            fwd_pe = info.get('forwardPE', 0)
-            peg = info.get('pegRatio', 0)
-            pb = info.get('priceToBook', 0)
+            price = info.get('currentPrice', None)
+            pe = info.get('trailingPE', None)
+            fwd_pe = info.get('forwardPE', None)
+            peg = info.get('pegRatio', None)
+            pb = info.get('priceToBook', None)
             
-            if price < 10.0:
+            if price is None or price < 10.0:
                 continue
                 
             results.append({
@@ -55,10 +55,14 @@ def scan_fundamentals():
                 'PEG': round(peg, 2) if peg else 'N/A',
                 'P/B': round(pb, 2) if pb else 'N/A'
             })
-        except Exception:
+        except Exception as e:
+            print(f"Error fetching data for {ticker}: {e}")
             continue
             
     df = pd.DataFrame(results)
+    if df.empty:
+        print("No results found.")
+        return
     df_valid = df[df['PEG'] != 'N/A'].copy()
     df_valid['PEG'] = pd.to_numeric(df_valid['PEG'])
     df_sorted = df_valid[df_valid['PEG'] > 0].sort_values(by='PEG').head(5)
