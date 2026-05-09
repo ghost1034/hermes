@@ -40,9 +40,19 @@
       "type": ".py"
     },
     {
-      "name": "market_scanner.py",
-      "path": "pipelines/ai_alpaca_trader/market_scanner.py",
+      "name": "fundamental_scanner.py",
+      "path": "pipelines/ai_alpaca_trader/fundamental_scanner.py",
       "type": ".py"
+    },
+    {
+      "name": "close_position.py",
+      "path": "pipelines/ai_alpaca_trader/close_position.py",
+      "type": ".py"
+    },
+    {
+      "name": "PLAN_DYNAMIC_SCANNER.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_DYNAMIC_SCANNER.md",
+      "type": ".md"
     },
     {
       "name": "PLAN.md",
@@ -55,9 +65,14 @@
       "type": ".md"
     },
     {
-      "name": "flatten_positions.py",
-      "path": "pipelines/ai_alpaca_trader/flatten_positions.py",
-      "type": ".py"
+      "name": "PLAN_FUNDAMENTAL_SWING.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_FUNDAMENTAL_SWING.md",
+      "type": ".md"
+    },
+    {
+      "name": "PLAN_CLOSE_POSITION.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_CLOSE_POSITION.md",
+      "type": ".md"
     }
   ],
   "b2b_lead_gen": [
