@@ -1,7 +1,0 @@
-Just wrapped up a massive sprint on the new execution logic for the trading bots and some CPAAutomation pipeline updates. I’ve been glued to the monitors since 6 AM, and honestly, by early afternoon, the screen fatigue was hitting hard. The code is flowing, the backtests are looking solid, but there's a point where staring at IDEs just yields diminishing returns. My brain feels fried, and my posture is completely wrecked.
-
-I’m learning that grinding 14 hours straight isn't a badge of honor if the code quality tanks. So, I forced myself to step away, shut the laptop, and hit the gym. Best decision of the day.
-
-Getting under the barbell is exactly the reset I need right now. Heavy squats demand absolute focus—you can't be thinking about API rate limits, Berkeley EECS course loads, or latency issues when you're trying to push that kind of weight. It’s a total physical override. The contrast between deep, abstract algorithmic problem-solving and raw physical exertion is perfectly balancing. I push myself physically to give my mind a break.
-
-Now I’m back at the desk, post-workout shake in hand, and the brain fog is completely gone. That persistent bug in the order routing system that was driving me crazy an hour ago? I already see the fix. The hustle is non-stop with the business scaling and my trading algorithms running, but I’ve got to protect the engine. The gym isn't just a break from the grind; it's what sustains the grind. Time to push this commit and get back to building.
