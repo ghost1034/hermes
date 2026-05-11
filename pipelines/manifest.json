@@ -149,6 +149,11 @@
   ],
   "b2b_lead_gen": [
     {
+      "name": "update_plan.md",
+      "path": "pipelines/b2b_lead_gen/update_plan.md",
+      "type": ".md"
+    },
+    {
       "name": "pipeline_instructions.md",
       "path": "pipelines/b2b_lead_gen/pipeline_instructions.md",
       "type": ".md"
