@@ -34,3 +34,5 @@ Use the `send_message` tool to deliver a notification to `telegram`:
 [Number] new AI papers analyzed for startup opportunities. 
 The draft has been appended to your local file: `/home/ianstewart/pipelines/daas_newsletter/newsletter_drafts.md`
 ```
+**Final Step: Push Updates to GitHub**
+Call the `terminal` tool to run: `cd ~ && git add pipelines/ && git commit -m "Auto-update pipeline data" && git push`

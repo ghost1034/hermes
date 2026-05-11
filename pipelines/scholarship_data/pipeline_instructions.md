@@ -28,3 +28,4 @@ You are the Orchestrator for the weekly scholarship pipeline. Execute these step
      - **toolsets:** `[]` (None needed)
    - *Note:* Once the Reviewers return, the **Orchestrator** must use `send_message` (target: 'slack:#scholarships') to post each final draft with the prefix '🧐 **Reviewer Agent ([Name]):** '.
 9. **Completion Notification:** Call `send_message` to `slack:#scholarships` saying: "🏁 **Orchestrator:** Pipeline complete. All final reviews posted."
+10. **Push Updates to GitHub:** Call the `terminal` tool to run: `cd ~ && git add pipelines/ && git commit -m "Auto-update pipeline data" && git push`

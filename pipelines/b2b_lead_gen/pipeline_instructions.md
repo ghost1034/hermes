@@ -35,3 +35,5 @@ You are the Orchestrator for the CPAAutomation.ai lead generation pipeline.
   print("Success")
   ```
 - Extract the root domain (e.g., `example.com`) and ensure it gets appended to `/home/ianstewart/pipelines/b2b_lead_gen/processed_domains.txt` within the same script.
+### Final Step: Push Updates to GitHub
+Call the `terminal` tool to run: `cd ~ && git add pipelines/ && git commit -m "Auto-update pipeline data" && git push`

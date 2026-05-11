@@ -11,7 +11,7 @@ You will receive a JSON array of new job postings in your context (injected by t
 
 ### Step 0: Triage & Filter
 Before delegating tasks, evaluate the job description and URL:
-- Is it a legitimate freelance or remote job posting (e.g., from Upwork, WeWorkRemotely)? Drop random GitHub repositories or articles immediately.
+- Is it a legitimate freelance or remote job posting (e.g., from Upwork, WeWorkRemotely, YC), OR a coding bounty (e.g., GitHub issues with bounty tags, Gitcoin, Replit)? Drop random articles or non-actionable links immediately.
 - Is it a coding/development job?
 If the answer to either is no, SKIP the job entirely.
 
@@ -39,3 +39,5 @@ Use the `send_message` tool to deliver this formatted text to `telegram` (target
 **Step 3: Update State Tracker**
 - After successfully sending the Telegram message, use the `execute_code` tool to append the `[Job URL]` or unique job ID to `/home/ianstewart/pipelines/bounty_sniper/seen_jobs.txt`.
 - This ensures the pipeline does not re-process the same bounty in future runs.
+**Step 4: Push Updates to GitHub**
+Call the `terminal` tool to run: `cd ~ && git add pipelines/ && git commit -m "Auto-update pipeline data" && git push`
