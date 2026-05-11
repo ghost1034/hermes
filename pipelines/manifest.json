@@ -11,6 +11,43 @@
       "type": ".txt"
     }
   ],
+  "ai_alpaca_trader_backup_momentum": [
+    {
+      "name": "PLAN_INTRADAY_MOMENTUM.md",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN_INTRADAY_MOMENTUM.md",
+      "type": ".md"
+    },
+    {
+      "name": "execute_trade.py",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/execute_trade.py",
+      "type": ".py"
+    },
+    {
+      "name": "market_scanner.py",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/market_scanner.py",
+      "type": ".py"
+    },
+    {
+      "name": "PLAN.md",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN.md",
+      "type": ".md"
+    },
+    {
+      "name": "PLAYBOOK.md",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAYBOOK.md",
+      "type": ".md"
+    },
+    {
+      "name": "PLAN_FUNDAMENTAL_SWING.md",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN_FUNDAMENTAL_SWING.md",
+      "type": ".md"
+    },
+    {
+      "name": "flatten_positions.py",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/flatten_positions.py",
+      "type": ".py"
+    }
+  ],
   "scholarship_data": [
     {
       "name": "pipeline_instructions.md",
@@ -68,6 +105,11 @@
       "name": "PLAN_FUNDAMENTAL_SWING.md",
       "path": "pipelines/ai_alpaca_trader/PLAN_FUNDAMENTAL_SWING.md",
       "type": ".md"
+    },
+    {
+      "name": "test_screener.py",
+      "path": "pipelines/ai_alpaca_trader/test_screener.py",
+      "type": ".py"
     },
     {
       "name": "PLAN_CLOSE_POSITION.md",
