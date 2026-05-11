@@ -1,3 +1,18 @@
 "Accounting firm" in San Francisco CA
 "CPA firm" in San Jose CA
 "Bookkeeping services" in Oakland CA
+"Accounting firm" in New York NY
+"CPA firm" in New York NY
+"Bookkeeping services" in Brooklyn NY
+"Accounting firm" in Chicago IL
+"CPA firm" in Chicago IL
+"Bookkeeping services" in Chicago IL
+"Legal practice" in Los Angeles CA
+"Law firm" in Los Angeles CA
+"Corporate finance consulting" in Austin TX
+"Fractional CFO services" in Dallas TX
+"Tax preparation services" in Miami FL
+"Estate planning attorneys" in Boston MA
+"Audit firm" in Seattle WA
+"Family law attorneys" in Denver CO
+"Financial advisory firm" in Atlanta GA
