@@ -10,14 +10,22 @@ def cancel_pending_orders(symbol):
     
     try:
         api = tradeapi.REST()
-        orders = api.list_orders(status='open')
+        orders = api.list_orders(status='open', symbols=[symbol])
         
         canceled_count = 0
         for order in orders:
-            if order.symbol == symbol:
+            # Safety check: do not cancel 'sell' orders (exit brackets) to avoid leaving positions unprotected
+            if order.side == 'sell':
+                print(f"Skipping sell order {order.id} for {symbol} (exit bracket). Use close_position.py to exit.")
+                continue
+                
+            try:
                 api.cancel_order(order.id)
-                print(f"Canceled order {order.id} for {symbol} ({order.side} {order.qty} @ {order.limit_price})")
+                price_info = f" @ {order.limit_price}" if order.limit_price else ""
+                print(f"Canceled order {order.id} for {symbol} ({order.side} {order.qty}{price_info})")
                 canceled_count += 1
+            except Exception as e:
+                print(f"Warning: Failed to cancel order {order.id} for {symbol}: {e}")
                 
         if canceled_count == 0:
             print(f"No pending orders found for {symbol}.")

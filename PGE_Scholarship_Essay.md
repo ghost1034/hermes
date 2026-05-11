@@ -1,0 +1,23 @@
+# PG&E Better Together STEM Scholarship Essay Draft
+
+**Prompt:** "Tell us about a time you identified a problem in your community and took steps to solve it. How did your actions impact the community? (500-750 words)"
+
+**Word Count:** ~650 words
+
+For a long time, I believed leadership meant having the loudest voice in the room. But during my early high school years, a quiet realization reshaped my perspective: true leadership isn't about commanding from the front; it’s about building the foundation that allows everyone else to thrive.
+
+I discovered this dynamic within my high school’s Science Olympiad team in Ohio. We were a passionate group, but our community was fundamentally fractured. Institutional knowledge evaporated whenever senior members graduated, study materials were scattered across countless neglected Google Drives, and our sub-teams operated in isolated silos. The enthusiasm to learn was present, but the friction of disorganization was stifling our collective potential.
+
+At the time, I was intimately familiar with the toll of instability. Throughout my first three years of high school, I acted as a primary caretaker for my father, who suffered from severe mental health issues. To manage the chaos and unpredictability of that environment, I learned to rely on strict routines and structural stability. I understood acutely how a lack of structure could lead to exhaustion and burnout. Watching my Science Olympiad peers experience that same frustration, I recognized a messy, human problem that I could help solve through technology.
+
+Stepping into the role of Technology Manager, I decided to put my belief in "creative computation" into practice—bending rigid tools like code and algorithms to alleviate human friction. I knew our team didn't need another motivational speech; we needed a sustainable system.
+
+Working late into the evenings, I designed and programmed a centralized digital hub for our program from scratch. I built a comprehensive, easily searchable database where members could upload past tests, custom study guides, and research notes. This ensured that our institutional knowledge was preserved and democratized. However, I knew that a database is only as useful as the community’s willingness to engage with it. To drive adoption and foster a genuinely collaborative culture, I integrated a gamified tracking system into the hub. I developed interactive leaderboards that rewarded resource contributions and practice milestones. I intentionally designed the user interface to be intuitive, ensuring that even our least technical members felt empowered to use it.
+
+The impact on our team's culture was profound and immediate. The digital hub successfully broke down the silos between our varying disciplines. Instead of hoarding resources, students actively contributed to the shared database, eager to help their peers succeed and participate in the friendly competition. Studying transformed from an isolating, stressful chore into a collaborative sprint. Equipped with a stable foundation, our team reached unprecedented heights. Our Cybersecurity team, which I captained, secured 1st place in Ohio, and our Agricultural Science team placed 6th nationally.
+
+Perhaps the most meaningful metric of success came right before my senior year, when my family relocated from Ohio to San Francisco. Leaving the team was difficult, but I left with the profound comfort of knowing that the digital architecture I had built would continue to support and empower the community long after my departure.
+
+This experience redefined my understanding of community impact. I learned that the most effective way to elevate others is through systems-based leadership—creating intuitive tools that remove barriers and let people focus on what they do best. I have since carried this philosophy forward, whether by developing CPAAutomation.ai to relieve professionals from bureaucratic burnout or by using machine learning to analyze spectrograms of beehives for ecological health.
+
+As I prepare to study Electrical Engineering and Computer Sciences at UC Berkeley, I am driven to tackle even larger systemic challenges. My ambition is to apply computational models and machine learning to complex physical systems, particularly in the realm of nuclear fusion and clean energy research. Just as I wrote code to bring a fractured Science Olympiad team together, I want to use creative computation to build the sustainable energy foundations that will allow global communities to thrive.

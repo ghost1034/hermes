@@ -4,12 +4,13 @@ import alpaca_trade_api as tradeapi
 import os
 import requests
 import concurrent.futures
+from typing import Optional, Dict, Any
 from dotenv import load_dotenv
 
 # Module level load_dotenv
 load_dotenv(os.path.expanduser(os.environ.get('ENV_PATH', '~/bots/alpaca/.env')))
 
-def get_portfolio():
+def get_portfolio() -> None:
     """
     Retrieves and prints the current Alpaca portfolio and open positions.
     """
@@ -35,12 +36,13 @@ def get_portfolio():
             print("None\n")
         else:
             for o in open_orders:
-                print(f"{o.symbol}: {o.side} {o.qty} @ limit {o.limit_price} (Class: {o.order_class})")
+                price_str = f"limit {o.limit_price}" if o.limit_price else f"stop {o.stop_price}" if hasattr(o, 'stop_price') and o.stop_price else "market"
+                print(f"{o.symbol}: {o.side} {o.qty} @ {price_str} (Class: {o.order_class})")
             print()
     except Exception as e:
         print(f"Could not load Alpaca portfolio: {e}\n")
 
-def fetch_ticker_data(ticker, min_price):
+def fetch_ticker_data(ticker: str, min_price: float) -> Optional[Dict[str, Any]]:
     """
     Fetches fundamental data for a single ticker using yfinance.
     """
@@ -69,7 +71,7 @@ def fetch_ticker_data(ticker, min_price):
         # Fail silently on individual tickers
         return None
 
-def scan_fundamentals(top_n_actives=100, max_tickers=50, min_price=10.0, top_setups=5):
+def scan_fundamentals(top_n_actives: int = 100, max_tickers: int = 50, min_price: float = 10.0, top_setups: int = 5) -> pd.DataFrame:
     """
     Fetches most active stocks from Alpaca and screens them for fundamental value.
     Uses a thread pool to fetch yfinance data concurrently.
