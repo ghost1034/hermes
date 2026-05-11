@@ -82,6 +82,16 @@
       "type": ".py"
     },
     {
+      "name": "run_scanner.py",
+      "path": "pipelines/ai_alpaca_trader/run_scanner.py",
+      "type": ".py"
+    },
+    {
+      "name": "test_fundamental_scanner.py",
+      "path": "pipelines/ai_alpaca_trader/test_fundamental_scanner.py",
+      "type": ".py"
+    },
+    {
       "name": "close_position.py",
       "path": "pipelines/ai_alpaca_trader/close_position.py",
       "type": ".py"
@@ -97,9 +107,24 @@
       "type": ".md"
     },
     {
+      "name": "run_tests.py",
+      "path": "pipelines/ai_alpaca_trader/run_tests.py",
+      "type": ".py"
+    },
+    {
+      "name": "exec_scanner.py",
+      "path": "pipelines/ai_alpaca_trader/exec_scanner.py",
+      "type": ".py"
+    },
+    {
       "name": "PLAYBOOK.md",
       "path": "pipelines/ai_alpaca_trader/PLAYBOOK.md",
       "type": ".md"
+    },
+    {
+      "name": "cancel_orders.py",
+      "path": "pipelines/ai_alpaca_trader/cancel_orders.py",
+      "type": ".py"
     },
     {
       "name": "PLAN_FUNDAMENTAL_SWING.md",
@@ -110,6 +135,11 @@
       "name": "test_screener.py",
       "path": "pipelines/ai_alpaca_trader/test_screener.py",
       "type": ".py"
+    },
+    {
+      "name": "PLAN_ORDER_MANAGEMENT.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_ORDER_MANAGEMENT.md",
+      "type": ".md"
     },
     {
       "name": "PLAN_CLOSE_POSITION.md",
