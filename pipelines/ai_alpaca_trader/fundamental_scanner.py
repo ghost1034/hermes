@@ -28,6 +28,15 @@ def get_portfolio():
             for p in positions:
                 print(f"{p.symbol}: {p.qty} shares @ ${p.avg_entry_price} (Current: ${p.current_price})")
             print()
+
+        open_orders = api.list_orders(status='open')
+        print("--- Pending/Open Orders ---")
+        if not open_orders:
+            print("None\n")
+        else:
+            for o in open_orders:
+                print(f"{o.symbol}: {o.side} {o.qty} @ limit {o.limit_price} (Class: {o.order_class})")
+            print()
     except Exception as e:
         print(f"Could not load Alpaca portfolio: {e}\n")
 
