@@ -1,21 +1,26 @@
 {
   "bounty_sniper": [
     {
-      "name": "pipeline_instructions.md",
-      "path": "pipelines/bounty_sniper/pipeline_instructions.md",
-      "type": ".md"
-    },
-    {
       "name": "seen_jobs.txt",
       "path": "pipelines/bounty_sniper/seen_jobs.txt",
       "type": ".txt"
+    },
+    {
+      "name": "pipeline_instructions.md",
+      "path": "pipelines/bounty_sniper/pipeline_instructions.md",
+      "type": ".md"
     }
   ],
   "ai_alpaca_trader_backup_momentum": [
     {
-      "name": "PLAN_INTRADAY_MOMENTUM.md",
-      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN_INTRADAY_MOMENTUM.md",
+      "name": "PLAN.md",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN.md",
       "type": ".md"
+    },
+    {
+      "name": "flatten_positions.py",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/flatten_positions.py",
+      "type": ".py"
     },
     {
       "name": "execute_trade.py",
@@ -28,24 +33,36 @@
       "type": ".py"
     },
     {
-      "name": "PLAN.md",
-      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN.md",
+      "name": "PLAN_FUNDAMENTAL_SWING.md",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN_FUNDAMENTAL_SWING.md",
+      "type": ".md"
+    },
+    {
+      "name": "PLAN_INTRADAY_MOMENTUM.md",
+      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN_INTRADAY_MOMENTUM.md",
       "type": ".md"
     },
     {
       "name": "PLAYBOOK.md",
       "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAYBOOK.md",
       "type": ".md"
+    }
+  ],
+  "daas_newsletter": [
+    {
+      "name": "seen_papers.txt",
+      "path": "pipelines/daas_newsletter/seen_papers.txt",
+      "type": ".txt"
     },
     {
-      "name": "PLAN_FUNDAMENTAL_SWING.md",
-      "path": "pipelines/ai_alpaca_trader_backup_momentum/PLAN_FUNDAMENTAL_SWING.md",
+      "name": "pipeline_instructions.md",
+      "path": "pipelines/daas_newsletter/pipeline_instructions.md",
       "type": ".md"
     },
     {
-      "name": "flatten_positions.py",
-      "path": "pipelines/ai_alpaca_trader_backup_momentum/flatten_positions.py",
-      "type": ".py"
+      "name": "newsletter_drafts.md",
+      "path": "pipelines/daas_newsletter/newsletter_drafts.md",
+      "type": ".md"
     }
   ],
   "scholarship_data": [
@@ -55,35 +72,30 @@
       "type": ".md"
     },
     {
-      "name": "user_profile.md",
-      "path": "pipelines/scholarship_data/user_profile.md",
-      "type": ".md"
-    },
-    {
       "name": "processed_scholarships.txt",
       "path": "pipelines/scholarship_data/processed_scholarships.txt",
       "type": ".txt"
+    },
+    {
+      "name": "user_profile.md",
+      "path": "pipelines/scholarship_data/user_profile.md",
+      "type": ".md"
     }
   ],
   "ai_alpaca_trader": [
     {
-      "name": "PLAN_INTRADAY_MOMENTUM.md",
-      "path": "pipelines/ai_alpaca_trader/PLAN_INTRADAY_MOMENTUM.md",
+      "name": "PLAN.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN.md",
       "type": ".md"
+    },
+    {
+      "name": "close_position.py",
+      "path": "pipelines/ai_alpaca_trader/close_position.py",
+      "type": ".py"
     },
     {
       "name": "execute_trade.py",
       "path": "pipelines/ai_alpaca_trader/execute_trade.py",
-      "type": ".py"
-    },
-    {
-      "name": "fundamental_scanner.py",
-      "path": "pipelines/ai_alpaca_trader/fundamental_scanner.py",
-      "type": ".py"
-    },
-    {
-      "name": "run_scanner.py",
-      "path": "pipelines/ai_alpaca_trader/run_scanner.py",
       "type": ".py"
     },
     {
@@ -92,23 +104,13 @@
       "type": ".py"
     },
     {
-      "name": "close_position.py",
-      "path": "pipelines/ai_alpaca_trader/close_position.py",
+      "name": "test_screener.py",
+      "path": "pipelines/ai_alpaca_trader/test_screener.py",
       "type": ".py"
     },
     {
-      "name": "PLAN_DYNAMIC_SCANNER.md",
-      "path": "pipelines/ai_alpaca_trader/PLAN_DYNAMIC_SCANNER.md",
-      "type": ".md"
-    },
-    {
-      "name": "PLAN.md",
-      "path": "pipelines/ai_alpaca_trader/PLAN.md",
-      "type": ".md"
-    },
-    {
-      "name": "run_tests.py",
-      "path": "pipelines/ai_alpaca_trader/run_tests.py",
+      "name": "fundamental_scanner.py",
+      "path": "pipelines/ai_alpaca_trader/fundamental_scanner.py",
       "type": ".py"
     },
     {
@@ -117,8 +119,18 @@
       "type": ".py"
     },
     {
-      "name": "PLAYBOOK.md",
-      "path": "pipelines/ai_alpaca_trader/PLAYBOOK.md",
+      "name": "PLAN_FUNDAMENTAL_SWING.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_FUNDAMENTAL_SWING.md",
+      "type": ".md"
+    },
+    {
+      "name": "PLAN_INTRADAY_MOMENTUM.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_INTRADAY_MOMENTUM.md",
+      "type": ".md"
+    },
+    {
+      "name": "PLAN_DYNAMIC_SCANNER.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_DYNAMIC_SCANNER.md",
       "type": ".md"
     },
     {
@@ -127,41 +139,36 @@
       "type": ".py"
     },
     {
-      "name": "PLAN_FUNDAMENTAL_SWING.md",
-      "path": "pipelines/ai_alpaca_trader/PLAN_FUNDAMENTAL_SWING.md",
+      "name": "PLAN_ORDER_MANAGEMENT.md",
+      "path": "pipelines/ai_alpaca_trader/PLAN_ORDER_MANAGEMENT.md",
       "type": ".md"
     },
     {
-      "name": "test_screener.py",
-      "path": "pipelines/ai_alpaca_trader/test_screener.py",
-      "type": ".py"
-    },
-    {
-      "name": "PLAN_ORDER_MANAGEMENT.md",
-      "path": "pipelines/ai_alpaca_trader/PLAN_ORDER_MANAGEMENT.md",
+      "name": "PLAYBOOK.md",
+      "path": "pipelines/ai_alpaca_trader/PLAYBOOK.md",
       "type": ".md"
     },
     {
       "name": "PLAN_CLOSE_POSITION.md",
       "path": "pipelines/ai_alpaca_trader/PLAN_CLOSE_POSITION.md",
       "type": ".md"
+    },
+    {
+      "name": "run_tests.py",
+      "path": "pipelines/ai_alpaca_trader/run_tests.py",
+      "type": ".py"
+    },
+    {
+      "name": "run_scanner.py",
+      "path": "pipelines/ai_alpaca_trader/run_scanner.py",
+      "type": ".py"
     }
   ],
   "b2b_lead_gen": [
     {
-      "name": "update_plan.md",
-      "path": "pipelines/b2b_lead_gen/update_plan.md",
-      "type": ".md"
-    },
-    {
       "name": "pipeline_instructions.md",
       "path": "pipelines/b2b_lead_gen/pipeline_instructions.md",
       "type": ".md"
-    },
-    {
-      "name": "processed_domains.txt",
-      "path": "pipelines/b2b_lead_gen/processed_domains.txt",
-      "type": ".txt"
     },
     {
       "name": "leads.csv",
@@ -169,26 +176,24 @@
       "type": ".csv"
     },
     {
+      "name": "processed_domains.txt",
+      "path": "pipelines/b2b_lead_gen/processed_domains.txt",
+      "type": ".txt"
+    },
+    {
       "name": "target_queries.txt",
       "path": "pipelines/b2b_lead_gen/target_queries.txt",
       "type": ".txt"
-    }
-  ],
-  "daas_newsletter": [
+    },
     {
-      "name": "pipeline_instructions.md",
-      "path": "pipelines/daas_newsletter/pipeline_instructions.md",
+      "name": "update_plan.md",
+      "path": "pipelines/b2b_lead_gen/update_plan.md",
       "type": ".md"
     },
     {
-      "name": "seen_papers.txt",
-      "path": "pipelines/daas_newsletter/seen_papers.txt",
-      "type": ".txt"
-    },
-    {
-      "name": "newsletter_drafts.md",
-      "path": "pipelines/daas_newsletter/newsletter_drafts.md",
-      "type": ".md"
+      "name": "append_leads.py",
+      "path": "pipelines/b2b_lead_gen/append_leads.py",
+      "type": ".py"
     }
   ]
 }
