@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<script type="text/javascript">
+/* <![CDATA[ */
+var gform;gform||(document.addEventListener("gform_main_scripts_loaded",function(){gform.scriptsLoaded=!0}),document.addEventListener("gform/theme/scripts_loaded",function(){gform.themeScriptsLoaded=!0}),window.addEventListener("DOMContentLoaded",function(){gform.domLoaded=!0}),gform={domLoaded:!1,scriptsLoaded:!1,themeScriptsLoaded:!1,isFormEditor:()=>"function"==typeof InitializeEditor,callIfLoaded:function(o){return!(!gform.domLoaded||!gform.scriptsLoaded||!gform.themeScriptsLoaded&&!gform.isFormEditor()||(gform.isFormEditor()&&console.warn("The use of gform.initializeOnLoaded() is deprecated in the form editor context and will be removed in Gravity Forms 3.1."),o(),0))},initializeOnLoaded:function(o){gform.callIfLoaded(o)||(document.addEventListener("gform_main_scripts_loaded",()=>{gform.scriptsLoaded=!0,gform.callIfLoaded(o)}),document.addEventListener("gform/theme/scripts_loaded",()=>{gform.themeScriptsLoaded=!0,gform.callIfLoaded(o)}),window.addEventListener("DOMContentLoaded",()=>{gform.domLoaded=!0,gform.callIfLoaded(o)}))},hooks:{action:{},filter:{}},addAction:function(o,r,e,t){gform.addHook("action",o,r,e,t)},addFilter:function(o,r,e,t){gform.addHook("filter",o,r,e,t)},doAction:function(o){gform.doHook("action",o,arguments)},applyFilters:function(o){return gform.doHook("filter",o,arguments)},removeAction:function(o,r){gform.removeHook("action",o,r)},removeFilter:function(o,r,e){gform.removeHook("filter",o,r,e)},addHook:function(o,r,e,t,n){null==gform.hooks[o][r]&&(gform.hooks[o][r]=[]);var d=gform.hooks[o][r];null==n&&(n=r+"_"+d.length),gform.hooks[o][r].push({tag:n,callable:e,priority:t=null==t?10:t})},doHook:function(r,o,e){var t;if(e=Array.prototype.slice.call(e,1),null!=gform.hooks[r][o]&&((o=gform.hooks[r][o]).sort(function(o,r){return o.priority-r.priority}),o.forEach(function(o){"function"!=typeof(t=o.callable)&&(t=window[t]),"action"==r?t.apply(null,e):e[0]=t.apply(null,e)})),"filter"==r)return e[0]},removeHook:function(o,r,t,n){var e;null!=gform.hooks[o][r]&&(e=(e=gform.hooks[o][r]).filter(function(o,r,e){return!!(null!=n&&n!=o.tag||null!=t&&t!=o.priority)}),gform.hooks[o][r]=e)}});
+/* ]]> */
+</script>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<link rel="alternate" type="application/rss+xml" title="Bridgepoint Consulting RSS Feed" href="https://bridgepointconsulting.com/feed/" />
+	<link rel="alternate" type="application/atom+xml" title="Bridgepoint Consulting Atom Feed" href="https://bridgepointconsulting.com/feed/atom/" />
+	<meta name="msapplication-TileColor" content="#000000">
+	<meta name="theme-color" content="#000000">
+
+	<link rel="preconnect" href="https://use.typekit.net" crossorigin />
+	<link rel="preload" as="style" href="https://use.typekit.net/nvz8wrp.css" />
+	<link rel="stylesheet" href="https://use.typekit.net/nvz8wrp.css" media="print" onload="this.media='all'" />
+	<noscript>
+		<link rel="stylesheet" href="https://use.typekit.net/nvz8wrp.css" />
+	</noscript>
+	
+	<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+<script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/e2f6515905d681d8c73ce654/script.js"></script><!-- Google tag (gtag.js) consent mode dataLayer added by Site Kit -->
+<script type="text/javascript" id="google_gtagjs-js-consent-mode-data-layer">
+/* <![CDATA[ */
+window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {"ad_personalization":"denied","ad_storage":"denied","ad_user_data":"denied","analytics_storage":"denied","functionality_storage":"denied","security_storage":"denied","personalization_storage":"denied","region":["AT","BE","BG","CH","CY","CZ","DE","DK","EE","ES","FI","FR","GB","GR","HR","HU","IE","IS","IT","LI","LT","LU","LV","MT","NL","NO","PL","PT","RO","SE","SI","SK"],"wait_for_update":500});
+window._googlesitekitConsentCategoryMap = {"statistics":["analytics_storage"],"marketing":["ad_storage","ad_user_data","ad_personalization"],"functional":["functionality_storage","security_storage"],"preferences":["personalization_storage"]};
+window._googlesitekitConsents = {"ad_personalization":"denied","ad_storage":"denied","ad_user_data":"denied","analytics_storage":"denied","functionality_storage":"denied","security_storage":"denied","personalization_storage":"denied","region":["AT","BE","BG","CH","CY","CZ","DE","DK","EE","ES","FI","FR","GB","GR","HR","HU","IE","IS","IT","LI","LT","LU","LV","MT","NL","NO","PL","PT","RO","SE","SI","SK"],"wait_for_update":500};
+/* ]]> */
+</script>
+<!-- End Google tag (gtag.js) consent mode dataLayer added by Site Kit -->
+
+	<!-- This site is optimized with the Yoast SEO Premium plugin v27.4 (Yoast SEO v27.6) - https://yoast.com/product/yoast-seo-premium-wordpress/ -->
+	<title>Brad Diseker | Bridgepoint Consulting</title>
+	<meta name="description" content="As a Practice Manager for Bridgepoint Consulting within the Financial Operations group in the Austin market, Brad leads multiple initiatives within project management, firm management, and business development for Bridgepoint." />
+	<link rel="canonical" href="https://bridgepointconsulting.com/team-member/brad-diseker/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Brad Diseker" />
+	<meta property="og:description" content="As a Practice Manager for Bridgepoint Consulting within the Financial Operations group in the Austin market, Brad leads multiple initiatives within project management, firm management, and business development for Bridgepoint." />
+	<meta property="og:url" content="https://bridgepointconsulting.com/team-member/brad-diseker/" />
+	<meta property="og:site_name" content="Bridgepoint Consulting" />
+	<meta property="article:publisher" content="https://www.facebook.com/BridgepointConsultingLLC" />
+	<meta property="article:modified_time" content="2025-12-11T22:45:57+00:00" />
+	<meta property="og:image" content="https://bridgepointconsulting.com/wp-content/uploads/2023/07/Untitled-design-1.jpg" />
+	<meta property="og:image:width" content="1080" />
+	<meta property="og:image:height" content="1080" />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@bpcextendreach" />
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https:\/\/schema.org","@graph":[{"@type":"WebPage","@id":"https:\/\/bridgepointconsulting.com\/team-member\/brad-diseker\/","url":"https:\/\/bridgepointconsulting.com\/team-member\/brad-diseker\/","name":"Brad Diseker | Bridgepoint Consulting","isPartOf":{"@id":"https:\/\/bridgepointconsulting.com\/#website"},"primaryImageOfPage":{"@id":"https:\/\/bridgepointconsulting.com\/team-member\/brad-diseker\/#primaryimage"},"image":{"@id":"https:\/\/bridgepointconsulting.com\/team-member\/brad-diseker\/#primaryimage"},"thumbnailUrl":"https:\/\/bridgepointconsulting.com\/wp-content\/uploads\/2023\/07\/Untitled-design-1.jpg","datePublished":"2022-07-13T18:34:11+00:00","dateModified":"2025-12-11T22:45:57+00:00","description":"As a Practice Manager for Bridgepoint Consulting within the Financial Operations group in the Austin market, Brad leads multiple initiatives within project management, firm management, and business development for Bridgepoint.","inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https:\/\/bridgepointconsulting.com\/team-member\/brad-diseker\/"]}]},{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/bridgepointconsulting.com\/team-member\/brad-diseker\/#primaryimage","url":"https:\/\/bridgepointconsulting.com\/wp-content\/uploads\/2023\/07\/Untitled-design-1.jpg","contentUrl":"https:\/\/bridgepointconsulting.com\/wp-content\/uploads\/2023\/07\/Untitled-design-1.jpg","width":1080,"height":1080,"caption":"Brad Desiker"},{"@type":"WebSite","@id":"https:\/\/bridgepointconsulting.com\/#website","url":"https:\/\/bridgepointconsulting.com\/","name":"Bridgepoint Consulting","description":"Finance &amp; Accounting Management Consulting Solutions","publisher":{"@id":"https:\/\/bridgepointconsulting.com\/#organization"},"alternateName":"BPC","potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https:\/\/bridgepointconsulting.com\/?s={search_term_string}"},"query-input":{"@type":"PropertyValueSpecification","valueRequired":true,"valueName":"search_term_string"}}],"inLanguage":"en-US"},{"@type":"Organization","@id":"https:\/\/bridgepointconsulting.com\/#organization","name":"Bridgepoint Consulting","alternateName":"BPC","url":"https:\/\/bridgepointconsulting.com\/","logo":{"@type":"ImageObject","inLanguage":"en-US","@id":"https:\/\/bridgepointconsulting.com\/#\/schema\/logo\/image\/","url":"https:\/\/bridgepointconsulting.com\/wp-content\/uploads\/2022\/09\/Bridgepoint-Consulting.png","contentUrl":"https:\/\/bridgepointconsulting.com\/wp-content\/uploads\/2022\/09\/Bridgepoint-Consulting.png","width":1200,"height":800,"caption":"Bridgepoint Consulting"},"image":{"@id":"https:\/\/bridgepointconsulting.com\/#\/schema\/logo\/image\/"},"sameAs":["https:\/\/www.facebook.com\/BridgepointConsultingLLC","https:\/\/x.com\/bpcextendreach"]}]}</script>
+	<!-- / Yoast SEO Premium plugin. -->
+
+
+<link rel='dns-prefetch' href='//js.hs-scripts.com' />
+<link rel='dns-prefetch' href='//www.google.com' />
+<link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel='dns-prefetch' href='//use.typekit.net' />
+		<style>
+			.lazyload,
+			.lazyloading {
+				max-width: 100%;
+			}
+		</style>
+		<style id='wp-img-auto-sizes-contain-inline-css' type='text/css'>
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<link rel='stylesheet' id='lwh-reset-css' href='https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/css/reset.min.css?ver=1.0.70' type='text/css' media='all' />
+<link rel='stylesheet' id='lwh-vendor-css' href='https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/css/vendor.min.css?ver=1.0.70' type='text/css' media='all' />
+<link rel='stylesheet' id='lwh-main-css' href='https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/style.css?ver=1.0.70' type='text/css' media='all' />
+<link rel='stylesheet' id='lwh-aos-css' href='https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/css/aos.min.css?ver=2.3.1' type='text/css' media='all' />
+<link rel='stylesheet' id='wp-block-library-css' href='https://bridgepointconsulting.com/wp-includes/css/dist/block-library/style.min.css?ver=8651716f529418904932839af08696f9' type='text/css' media='all' />
+
+<style id='classic-theme-styles-inline-css' type='text/css'>
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+/*# sourceURL=/wp-includes/css/classic-themes.min.css */
+</style>
+<link rel='stylesheet' id='lwh-fonts-css' href='https://use.typekit.net/nvz8wrp.css?ver=v1' type='text/css' media='all' />
+<style id='global-styles-inline-css' type='text/css'>
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1" id="jquery-migrate-js"></script>
+
+<!-- Google tag (gtag.js) snippet added by Site Kit -->
+<!-- Google Analytics snippet added by Site Kit -->
+<!-- Google Ads snippet added by Site Kit -->
+<script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=GT-WVGML4N" id="google_gtagjs-js" async></script>
+<script type="text/javascript" id="google_gtagjs-js-after">
+/* <![CDATA[ */
+window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}
+gtag("set","linker",{"domains":["bridgepointconsulting.com"]});
+gtag("js", new Date());
+gtag("set", "developer_id.dZTNiMT", true);
+gtag("config", "GT-WVGML4N");
+gtag("config", "AW-959946187");
+ window._googlesitekit = window._googlesitekit || {}; window._googlesitekit.throttledEvents = []; window._googlesitekit.gtagEvent = (name, data) => { var key = JSON.stringify( { name, data } ); if ( !! window._googlesitekit.throttledEvents[ key ] ) { return; } window._googlesitekit.throttledEvents[ key ] = true; setTimeout( () => { delete window._googlesitekit.throttledEvents[ key ]; }, 5 ); gtag( "event", name, { ...data, event_source: "site-kit" } ); }; 
+//# sourceURL=google_gtagjs-js-after
+/* ]]> */
+</script>
+<meta name="generator" content="Site Kit by Google 1.178.0" />			<!-- DO NOT COPY THIS SNIPPET! Start of Page Analytics Tracking for HubSpot WordPress plugin v11.3.45-->
+			<script class="hsq-set-content-id" data-content-id="blog-post">
+				var _hsq = _hsq || [];
+				_hsq.push(["setContentType", "blog-post"]);
+			</script>
+			<!-- DO NOT COPY THIS SNIPPET! End of Page Analytics Tracking for HubSpot WordPress plugin -->
+					<script>
+			document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+		</script>
+				<style>
+			.no-js img.lazyload {
+				display: none;
+			}
+
+			figure.wp-block-image img.lazyloading {
+				min-width: 150px;
+			}
+
+			.lazyload,
+			.lazyloading {
+				--smush-placeholder-width: 100px;
+				--smush-placeholder-bg-max-width: 120px;
+				--smush-placeholder-aspect-ratio: 1/1;
+				width: var(--smush-image-width, var(--smush-placeholder-width)) !important;
+				aspect-ratio: var(--smush-image-aspect-ratio, var(--smush-placeholder-aspect-ratio)) !important;
+			}
+
+						.lazyload, .lazyloading {
+				opacity: 0;
+			}
+
+			.lazyloaded {
+				opacity: 1;
+				transition: opacity 400ms;
+				transition-delay: 0ms;
+			}
+
+					</style>
+		<meta name="google-site-verification" content="zG8PCR6ctZBgVWWjWBELxUcVSiiVMcNRaprE0u7GSlU">
+<!-- Google Tag Manager snippet added by Site Kit -->
+<script type="text/javascript">
+/* <![CDATA[ */
+
+			( function( w, d, s, l, i ) {
+				w[l] = w[l] || [];
+				w[l].push( {'gtm.start': new Date().getTime(), event: 'gtm.js'} );
+				var f = d.getElementsByTagName( s )[0],
+					j = d.createElement( s ), dl = l != 'dataLayer' ? '&l=' + l : '';
+				j.async = true;
+				j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+				f.parentNode.insertBefore( j, f );
+			} )( window, document, 'script', 'dataLayer', 'GTM-N898H9R' );
+			
+/* ]]> */
+</script>
+
+<!-- End Google Tag Manager snippet added by Site Kit -->
+<link rel="icon" href="https://bridgepointconsulting.com/wp-content/uploads/2023/01/cropped-cropped-BPC-Favicon-Logo-RGB-with-Background-1-32x32.png" sizes="32x32" />
+<link rel="icon" href="https://bridgepointconsulting.com/wp-content/uploads/2023/01/cropped-cropped-BPC-Favicon-Logo-RGB-with-Background-1-192x192.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://bridgepointconsulting.com/wp-content/uploads/2023/01/cropped-cropped-BPC-Favicon-Logo-RGB-with-Background-1-180x180.png" />
+<meta name="msapplication-TileImage" content="https://bridgepointconsulting.com/wp-content/uploads/2023/01/cropped-cropped-BPC-Favicon-Logo-RGB-with-Background-1-270x270.png" />
+	
+	<link rel='stylesheet' id='block-acf-cta-css' href='https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/blocks/cta/cta.css?theme_ver=1.0.70&#038;ver=6.8.0.1' type='text/css' media='all' />
+<link rel='stylesheet' id='gform_basic-css' href='https://bridgepointconsulting.com/wp-content/plugins/gravityforms/assets/css/dist/basic.min.css?ver=2.10.2' type='text/css' media='all' />
+<link rel='stylesheet' id='gform_theme_components-css' href='https://bridgepointconsulting.com/wp-content/plugins/gravityforms/assets/css/dist/theme-components.min.css?ver=2.10.2' type='text/css' media='all' />
+<link rel='stylesheet' id='gform_theme-css' href='https://bridgepointconsulting.com/wp-content/plugins/gravityforms/assets/css/dist/theme.min.css?ver=2.10.2' type='text/css' media='all' />
+
+</head>
+
+
+
+
+<body class="wp-singular team-template-default single single-team postid-6881 wp-theme-bridgepoint-20221" >
+		<!-- Google Tag Manager (noscript) snippet added by Site Kit -->
+		<noscript>
+			<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N898H9R" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+		</noscript>
+		<!-- End Google Tag Manager (noscript) snippet added by Site Kit -->
+		<div class="menubar--spacer"></div>
+<header class="menubar--section">
+	<a class="menubar--skip" href="#welcome">Skip to main content</a>
+	<div class="container menubar--container">
+	
+		<a class="menubar--logo-wrap" href="https://bridgepointconsulting.com" aria-label="return to homepage">
+			<img class="menubar--logo dark-mod small-mod" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/images/bpc-small-logo-dark-2022.svg" width="126" height="150" loading="eager" alt="Bridgepoint Consulting" />
+			<img class="menubar--logo full-mod" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/images/BPlogo2022.svg?v1" width="238" height="150" loading="eager" alt="Bridgepoint Consulting" />
+		</a>
+
+		<nav class="menubar--menu-wrap d-xl-flex justify-content-xl-end">
+		
+		<ul id="menubar--menu" class="menubar--menu sf-menu align-self-xl-center" aria-labelledby="menubar--button"><li id="menu-item-30338" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-30338"><a href="https://bridgepointconsulting.com/management-consulting-firm/">Who We Are</a>
+<ul class="sub-menu">
+	<li id="menu-item-3689" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-3689"><a href="https://bridgepointconsulting.com/management-consulting-firm-2/leadership/">Our Team</a></li>
+	<li id="menu-item-29449" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-29449"><a href="https://bridgepointconsulting.com/partners-2/">Our Partners</a></li>
+	<li id="menu-item-31638" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31638"><a href="https://bridgepointconsulting.com/management-consulting-firm/corporate-social-responsibility/">Corporate Social Responsibility</a></li>
+	<li id="menu-item-31650" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31650"><a href="https://bridgepointconsulting.com/management-consulting-firm/our-brands/">Our Brands</a></li>
+	<li id="menu-item-5152" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5152"><a href="https://bridgepointconsulting.com/our-core-values/">Life at Bridgepoint</a></li>
+	<li id="menu-item-5151" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5151"><a href="https://bridgepointconsulting.com/management-consulting-firm-2/careers/">Careers</a></li>
+	<li id="menu-item-13496" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13496"><a href="https://bridgepointconsulting.com/location/">Locations</a></li>
+</ul>
+</li>
+<li id="menu-item-244" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-244"><a href="https://bridgepointconsulting.com/service/">What We Do</a>
+<ul class="sub-menu">
+	<li id="menu-item-32735" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-32735"><a href="https://bridgepointconsulting.com/ai-advisory-services/">AI Advisory Services</a></li>
+	<li id="menu-item-331" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-331"><a href="https://bridgepointconsulting.com/service/financial-consulting/">Finance &#038; Accounting Advisory</a></li>
+	<li id="menu-item-5171" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5171"><a href="https://bridgepointconsulting.com/service/transaction-advisory/">Private Equity Advisory</a></li>
+	<li id="menu-item-5172" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5172"><a href="https://bridgepointconsulting.com/service/risk-compliance/">Risk Management</a></li>
+	<li id="menu-item-5178" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5178"><a href="https://bridgepointconsulting.com/service/technology/netsuite/">NetSuite Services</a></li>
+	<li id="menu-item-5177" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5177"><a href="https://bridgepointconsulting.com/service/technology/">Oracle Cloud Solutions</a></li>
+</ul>
+</li>
+<li id="menu-item-30657" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-30657"><a href="https://bridgepointconsulting.com/who-we-serve/">Who We Serve</a>
+<ul class="sub-menu">
+	<li id="menu-item-5180" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5180"><a href="https://bridgepointconsulting.com/industries/business-leaders/">Business Leaders</a></li>
+	<li id="menu-item-5182" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5182"><a href="https://bridgepointconsulting.com/industries/growing-companies/">Growing Companies</a></li>
+	<li id="menu-item-5181" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5181"><a href="https://bridgepointconsulting.com/industries/centers-of-influence/">Centers of Influence</a></li>
+</ul>
+</li>
+<li id="menu-item-30656" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-30656"><a href="https://bridgepointconsulting.com/industries/">Industries</a>
+<ul class="sub-menu">
+	<li id="menu-item-30659" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30659"><a href="https://bridgepointconsulting.com/industries/construction-real-estate/">Construction &#038; Real Estate</a></li>
+	<li id="menu-item-30658" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30658"><a href="https://bridgepointconsulting.com/industries/consumer-entertainment-retail/">Consumer, Entertainment &#038; Retail</a></li>
+	<li id="menu-item-30660" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30660"><a href="https://bridgepointconsulting.com/industries/education-nonprofit/">Education &#038; Nonprofit</a></li>
+	<li id="menu-item-30661" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30661"><a href="https://bridgepointconsulting.com/industries/energy/">Energy</a></li>
+	<li id="menu-item-30674" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30674"><a href="https://bridgepointconsulting.com/industries/financial-services/">Financial Services</a></li>
+	<li id="menu-item-30667" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30667"><a href="https://bridgepointconsulting.com/industries/healthcare-life-sciences/">Healthcare &#038; Life Sciences</a></li>
+	<li id="menu-item-30668" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30668"><a href="https://bridgepointconsulting.com/industries/manufacturing-distribution/">Manufacturing &#038; Distribution</a></li>
+	<li id="menu-item-30669" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30669"><a href="https://bridgepointconsulting.com/industries/professional-services/">Professional Services</a></li>
+	<li id="menu-item-30670" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30670"><a href="https://bridgepointconsulting.com/industries/public-sector/">Public Sector</a></li>
+	<li id="menu-item-30671" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30671"><a href="https://bridgepointconsulting.com/industries/technology-software/">Technology &#038; Software</a></li>
+</ul>
+</li>
+<li id="menu-item-8937" class="menu-item menu-item-type-post_type_archive menu-item-object-insights menu-item-has-children menu-item-8937"><a href="https://bridgepointconsulting.com/insights/">Insights</a>
+<ul class="sub-menu">
+	<li id="menu-item-13886" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-13886"><a href="https://bridgepointconsulting.com/insights/">Blog</a></li>
+	<li id="menu-item-13498" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-13498"><a href="https://bridgepointconsulting.com/insights/video/">Videos</a></li>
+	<li id="menu-item-13500" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-13500"><a href="https://bridgepointconsulting.com/insights/case-study/">Case Studies</a></li>
+	<li id="menu-item-13501" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-13501"><a href="https://bridgepointconsulting.com/insights/white-paper/">White Papers</a></li>
+	<li id="menu-item-13502" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-13502"><a href="https://bridgepointconsulting.com/insights/press/">Press</a></li>
+</ul>
+</li>
+</ul>
+			<div class="menubar--search-wrap desktop-mod">
+				<button type="button" aria-label="toggle search popup" aria-haspopup="true" aria-controls="menubar--search" id="menubar--search-button" class="menubar--search-button" >
+					<svg alt="search" class="menubar--search-button-icon" xmlns="http://www.w3.org/2000/svg" width="33.89" height="33.17" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 33.89 33.17">
+						<path stroke="currentColor" fill="none" d="M13.14,25.79c6.98,0,12.64-5.66,12.64-12.64S20.13,.5,13.14,.5,.5,6.16,.5,13.14s5.66,12.64,12.64,12.64" />
+						<line x1="33.39" y1="32.67" x2="22.55" y2="21.83" stroke="currentColor" fill="none" style="stroke-linecap: round; stroke-linejoin: round;"/>
+					</svg>
+					<!-- form in footer -->
+				</button>
+			</div>
+			
+			<div class="menubar--search-mobile d-xl-none">
+				<form role="search" method="get" class="search-form" action="https://bridgepointconsulting.com/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form>			</div>
+			
+						<div class="menubar--cta-wrap d-xl-flex justify-content-center flex-column">
+				<a class="button menubar--cta" href="https://bridgepointconsulting.com/management-consulting-firm/contact/" target="">Contact</a>
+			</div>
+						
+
+		</nav>
+		
+
+		
+		<button class="menubar--hamburger" type="button" aria-label="toggle menu" aria-haspopup="true" aria-controls="menubar--menu" id="menubar--button">
+			<span class="menubar--hamburger-box">
+				<span></span>
+				<span></span>
+				<span></span>
+			</span>
+		</button>
+		
+	</div>
+</header>
+<main id="welcome">	
+	<article class="section single-team--section">
+		<div class="container single-team--container narrow-container">
+		
+			<nav aria-label="breadcrumb" class="single-team--breadcrumb mb-3 article">
+				<a class="single-team--breadcrumb " href="https://bridgepointconsulting.com/management-consulting-firm/leadership/">&laquo; Bridgepoint Leadership</a>
+			</nav>
+		
+			<div class="row">
+				<div class="col-md-6 col-lg-5">
+					<div class="single-team--image object-fit-cover">
+						<img width="1024" height="1024" src="https://bridgepointconsulting.com/wp-content/uploads/2023/07/Untitled-design-1-1024x1024.jpg" class="attachment-large size-large wp-post-image" alt="Brad Desiker" decoding="async" fetchpriority="high" srcset="https://bridgepointconsulting.com/wp-content/uploads/2023/07/Untitled-design-1-1024x1024.jpg 1024w, https://bridgepointconsulting.com/wp-content/uploads/2023/07/Untitled-design-1-300x300.jpg 300w, https://bridgepointconsulting.com/wp-content/uploads/2023/07/Untitled-design-1-150x150.jpg 150w, https://bridgepointconsulting.com/wp-content/uploads/2023/07/Untitled-design-1-768x768.jpg 768w, https://bridgepointconsulting.com/wp-content/uploads/2023/07/Untitled-design-1.jpg 1080w" sizes="(max-width: 1024px) 100vw, 1024px" />					</div>
+					
+										
+				</div>
+				<div class="col-md-6 col-lg-7 pl-lg-5">
+				
+					<div class="single-team--meta">
+	<h1 class="single-team--title medium-title">Brad Diseker</h1>
+
+		<h2 class="single-team--position">Director, Financial Operations</h2>
+	
+		
+</div>					
+					<div class="single-team--content article post-6881 team type-team status-publish has-post-thumbnail leadership_types-management-team"><p>As a Director for Bridgepoint Consulting within the Financial Operations group in the Austin market, Brad leads multiple initiatives within project management, firm management, and business development for Bridgepoint. Brad oversees the end-to-end success of projects from scoping to delivery for high-growth companies that require scalability of their accounting and finance functions to support their overall growth goals.</p>
+<p>Brad has a bachelor&#8217;s degree from Texas State University with a major in Finance. Brad has over a decade of experience in finance and strategy, both as a consultant for Bridgepoint and as a finance and strategy leader in the industry here in Austin. He is an active member of the Austin business community and is a board member for the First Tee of Greater Austin.</p>
+</div>
+					
+					<div class="single-team--social">
+
+	<a title="LinkedIn Profile" class="lwh-social-icon lwh-social-icon-li" rel="noopener noreferrer nofollow button" target="_blank" href="https://www.linkedin.com/in/brad-diseker-a6a911a8/">
+		<svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="linkedin-in" class="svg-inline--fa fa-linkedin-in fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Pro 6.1.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill="currentColor" d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"></path></svg>
+	</a>
+
+
+
+
+	<a title="Email" class="lwh-social-icon lwh-social-icon-email" rel="noopener noreferrer nofollow button" target="_blank" href="mailto:bdiseker@bridgepointconsulting.com">
+		<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.1.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill="currentColor" d="M464 64C490.5 64 512 85.49 512 112C512 127.1 504.9 141.3 492.8 150.4L275.2 313.6C263.8 322.1 248.2 322.1 236.8 313.6L19.2 150.4C7.113 141.3 0 127.1 0 112C0 85.49 21.49 64 48 64H464zM217.6 339.2C240.4 356.3 271.6 356.3 294.4 339.2L512 176V384C512 419.3 483.3 448 448 448H64C28.65 448 0 419.3 0 384V176L217.6 339.2z"/></svg>
+	</a>
+
+
+</div>					
+				</div>
+			</div>
+
+		</div>
+	</article>
+<section class="team--expertise blue-dark-bg-mod">
+	<div class="team--expertise-container container  narrow-container">
+		
+		<h2 class="medium-title team--expertise-title mb-3">Areas of Expertise</h2>
+		
+		<div class="row">
+			<div class="col-lg-6 offset-lg-1 order-lg-2 team--expertise-listcol">
+				
+				<ul class="team--expertise-list large-copy">
+																			
+											<li class="team--expertise-listcol-li">
+							<a href="https://bridgepointconsulting.com/service/financial-consulting/finance-transformation/" target="">Finance Transformation</a>
+						</li>
+					
+										
+																			
+											<li class="team--expertise-listcol-li">
+							<a href="https://bridgepointconsulting.com/service/financial-consulting/financial-planning-analysis/" target="">Financial Planning & Analysis</a>
+						</li>
+					
+										
+								</ul>
+			</div>
+			<div class="col-lg-5 order-lg-1">
+							</div>
+		</div>
+	</div>
+</section>
+
+
+
+<section class="single-post--related team-mod"> 
+	<div class="container single-post--related-container narrow-container">
+		
+		<h2 class="medium-title single-post--related-title text-center" data-aos="fade-in">
+			Related Articles
+		</h2>
+		
+		<div class="row justify-content-center">
+				<div class="col-lg-4 col-md-6 single-post--related-col" data-aos="fade-in">
+				<article class="blog-card post-15886 insights type-insights status-publish has-post-thumbnail category-insights">
+
+	<a class="blog-card--image-wrap" href="https://bridgepointconsulting.com/insights/budget-planning-2025-how-cfos-drive-strategy-and-growth/">
+		<div class="blog-card--image object-fit-cover"><img width="768" height="512" src="https://bridgepointconsulting.com/wp-content/uploads/2022/10/budget-planning-2025-essential-strategies-for-cfos-to-drive-growth-768x512.jpg" class="attachment-medium_large size-medium_large wp-post-image" alt="Desk with a binder that says &quot;budget&quot;, glasses, calculator, and paper with graphs and charts." fetchpriority="low" loading="lazy" decoding="async" srcset="https://bridgepointconsulting.com/wp-content/uploads/2022/10/budget-planning-2025-essential-strategies-for-cfos-to-drive-growth-768x512.jpg 768w, https://bridgepointconsulting.com/wp-content/uploads/2022/10/budget-planning-2025-essential-strategies-for-cfos-to-drive-growth-300x200.jpg 300w, https://bridgepointconsulting.com/wp-content/uploads/2022/10/budget-planning-2025-essential-strategies-for-cfos-to-drive-growth-1024x682.jpg 1024w, https://bridgepointconsulting.com/wp-content/uploads/2022/10/budget-planning-2025-essential-strategies-for-cfos-to-drive-growth.jpg 1280w" sizes="auto, (max-width: 768px) 100vw, 768px" /></div>
+	</a>
+	
+	<div class="blog-card--copy-wrap">
+		
+		<div class="blog-card--category">
+			<a href="https://bridgepointconsulting.com/category/insights/" rel="tag">Blog</a>		</div>
+		
+		<a class="blog-card--title-wrap" href="https://bridgepointconsulting.com/insights/budget-planning-2025-how-cfos-drive-strategy-and-growth/">
+			<h3 class="blog-card--title mb-0">
+				Budget Planning 2025: How CFOs Can Drive Strategy and Growth			</h3>
+		</a>
+		
+	</div>
+	
+</article>			</div>
+			</div>
+	</div>
+</section>
+
+<div class="single--widget-area" role="complementary">
+    <div id="widget-block-5" class="single-team-widget widget_block"><section 
+	class="cta--section  blue-arches-bg-mod narrow-mod arch-bottom-mod"
+	id="lwh-block-block_ebe7138e0ecfbbc6bbcbb07aad5ade73"
+	data-blockname="CTA"
+>
+	<div class="container cta--container text-center">
+				<h2 class="cta--title large-title" data-aos="fade-in">Ready for a Solution?</h2>
+		
+		
+				<div class="cta--cta-wrap" data-aos="fade-in">
+			<a class="button cta--cta white-mod outline-mod"  href="https://bridgepointconsulting.com/management-consulting-firm/contact/" target="">Let's Talk</a>
+		</div>
+			</div>
+</section></div></div>
+
+</main>
+<div class="menubar--search mfp-hide" id="menubar--search" aria-labelledby="menubar--search-button">
+	<div class="menubar--search-container container">
+		<div class="row">
+			<div class="col-auto">
+				<img class="menubar--search-logo" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/images/bpc-small-logo-dark-2022.svg" width="126" height="150" alt="Bridgepoint Consulting" loading="lazy" />
+			</div>
+			<div class="col menubar--search-form-col d-flex flex-column justify-content-center">
+				<form role="search" method="get" class="search-form" action="https://bridgepointconsulting.com/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form>			</div>
+			<div class="col-auto d-flex flex-column justify-content-center">
+				<button class="menubar--search-close-button" id="menubar--search-close-button">
+					<img class="menubar--search-close-icon" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/images/searchform-close.svg" width="59" height="59" alt="Close search popup" loading="lazy" />
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+<footer class="section footer--section blue-dark-bg-mod" >
+	<div class="container footer--container">
+		<div class="row">
+			<div class="col-lg">
+				<div class="row">
+					<div class="col-lg-6">
+												<h3 class="footer-small-title">About</h3>
+						<div class="footer--about-text"><p>As a leading management consulting firm, we <em>bridge</em> the gaps between finance, technology, operations, and risk management, for companies to thrive during every lifecycle stage.</p>
+</div>
+											</div>
+					<div class="col-lg-6 footer--subscribe-col">
+					
+												<h3 class="footer-small-title">Subscribe to Our Blog</h3>
+						
+												
+                <div class='gf_browser_unknown gform_wrapper gravity-theme gform-theme--no-framework' data-form-theme='gravity-theme' data-form-index='0' id='gform_wrapper_1' ><div id='gf_1' class='gform_anchor' tabindex='-1'></div>
+                        <div class='gform_heading'>
+							<p class='gform_required_legend'></p>
+                        </div><form method='post' enctype='multipart/form-data' target='gform_ajax_frame_1' id='gform_1'  action='/team-member/brad-diseker/#gf_1' data-formid='1' novalidate><div class='gf_invisible ginput_recaptchav3' data-sitekey='6LcqdPEqAAAAAGSChXDCC0xreaucOyYgO7Rv0Y8E' data-tabindex='0'><input id="input_d6940e429b33b630150a5335bca4b629" class="gfield_recaptcha_response" type="hidden" name="input_d6940e429b33b630150a5335bca4b629" value=""/></div>
+                        <div class='gform-body gform_body'><div id='gform_fields_1' class='gform_fields top_label form_sublabel_below description_below validation_below'><div id="field_1_22" class="gfield gfield--type-honeypot gform_validation_container field_sublabel_below gfield--has-description field_description_below field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_1_22'>Email</label><div class='ginput_container'><input name='input_22' id='input_1_22' type='text' value='' autocomplete='new-password'/></div><div class='gfield_description' id='gfield_description_1_22'>This field is for validation purposes and should be left unchanged.</div></div><div id="field_1_12" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_12' id='input_1_12' type='hidden' class='gform_hidden'  aria-invalid="false" value='Bridgepoint Consulting' /></div></div><div id="field_1_19" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_19' id='input_1_19' type='hidden' class='gform_hidden'  aria-invalid="false" value='Bridgepoint Consulting' /></div></div><div id="field_1_18" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_18' id='input_1_18' type='hidden' class='gform_hidden'  aria-invalid="false" value='Bridgepoint Consulting' /></div></div><div id="field_1_17" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_17' id='input_1_17' type='hidden' class='gform_hidden'  aria-invalid="false" value='Bridgepoint Consulting' /></div></div><div id="field_1_16" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_16' id='input_1_16' type='hidden' class='gform_hidden'  aria-invalid="false" value='Identified' /></div></div><div id="field_1_21" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_21' id='input_1_21' type='hidden' class='gform_hidden'  aria-invalid="false" value='Bridgepoint Marketing' /></div></div><div id="field_1_15" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_15' id='input_1_15' type='hidden' class='gform_hidden'  aria-invalid="false" value='Inbound Form - Newsletter/Blog Subscriptions' /></div></div><div id="field_1_20" class="gfield gfield--type-hidden gfield--input-type-hidden gfield--width-full gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_20' id='input_1_20' type='hidden' class='gform_hidden'  aria-invalid="false" value='Brad Diseker, https://bridgepointconsulting.com/team-member/brad-diseker/' /></div></div><div id="field_1_3" class="gfield gfield--type-hidden gfield--input-type-hidden gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_3' id='input_1_3' type='hidden' class='gform_hidden'  aria-invalid="false" value='6881' /></div></div><div id="field_1_4" class="gfield gfield--type-hidden gfield--input-type-hidden gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_4' id='input_1_4' type='hidden' class='gform_hidden'  aria-invalid="false" value='Brad Diseker' /></div></div><div id="field_1_5" class="gfield gfield--type-hidden gfield--input-type-hidden gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_5' id='input_1_5' type='hidden' class='gform_hidden'  aria-invalid="false" value='' /></div></div><div id="field_1_6" class="gfield gfield--type-hidden gfield--input-type-hidden gform_hidden field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  ><div class='ginput_container ginput_container_text'><input name='input_6' id='input_1_6' type='hidden' class='gform_hidden'  aria-invalid="false" value='https://bridgepointconsulting.com/team-member/brad-diseker/' /></div></div><div id="field_1_2" class="gfield gfield--type-email gfield--input-type-email gfield--width-half gfield_contains_required field_sublabel_below gfield--no-description field_description_below hidden_label field_validation_below gfield_visibility_visible"  ><label class='gfield_label gform-field-label' for='input_1_2'>Email<span class="gfield_required"><span class="gfield_required gfield_required_asterisk">*</span></span></label><div class='ginput_container ginput_container_email'>
+                            <input name='input_2' id='input_1_2' type='email' value='' class='large'   placeholder='Email*' aria-required="true" aria-invalid="false"  />
+                        </div></div><div id="field_submit" class="gfield gfield--type-submit gfield--width-half field_sublabel_below gfield--no-description field_description_below field_validation_below gfield_visibility_visible"  data-field-class="gform_editor_submit_container" data-field-position="inline" ><input type='submit' id='gform_submit_button_1' class='gform-button gform-button--white  button' onclick='gform.submission.handleButtonClick(this);' data-submission-type='submit' value='Submit'  /></div></div></div>
+        <div class='gform-footer gform_footer top_label'>  <input type='hidden' name='gform_ajax' value='form_id=1&amp;title=&amp;description=&amp;tabindex=0&amp;theme=gravity-theme&amp;hash=35903b8d0f5be2a0617d2549d1c9c382' />
+            <input type='hidden' class='gform_hidden' name='gform_submission_method' data-js='gform_submission_method_1' value='iframe' />
+            <input type='hidden' class='gform_hidden' name='gform_theme' data-js='gform_theme_1' id='gform_theme_1' value='gravity-theme' />
+            <input type='hidden' class='gform_hidden' name='gform_style_settings' data-js='gform_style_settings_1' id='gform_style_settings_1' value='' />
+            <input type='hidden' class='gform_hidden' name='is_submit_1' value='1' />
+            <input type='hidden' class='gform_hidden' name='gform_submit' value='1' />
+            
+            <input type='hidden' class='gform_hidden' name='gform_currency' data-currency='USD' value='kgXRC3xY6Jhl9fGYKrtWPCjE63X5kRGw5Ga1RdMukASEeNkn+mChqPbHdV4Jvyn7kGcwzyqP4K8hse4eg3NoEdG3cpte6nvo2PWAIXjWQLTYyWk=' />
+            <input type='hidden' class='gform_hidden' name='gform_unique_id' value='' />
+            <input type='hidden' class='gform_hidden' name='state_1' value='WyJbXSIsImI4ZTMyZmZiYzE0MzA0ZmE2NTk2ZDA5YWFjZDE0YjIwIl0=' />
+            <input type='hidden' autocomplete='off' class='gform_hidden' name='gform_target_page_number_1' id='gform_target_page_number_1' value='0' />
+            <input type='hidden' autocomplete='off' class='gform_hidden' name='gform_source_page_number_1' id='gform_source_page_number_1' value='1' />
+            <input type='hidden' name='gform_field_values' value='' />
+            
+        </div>
+                        </form>
+                        </div>
+		                <iframe style='display:none;width:0px;height:0px;' src='about:blank' name='gform_ajax_frame_1' id='gform_ajax_frame_1' title='This iframe contains the logic required to handle Ajax powered Gravity Forms.'></iframe>
+		                <script type="text/javascript">
+/* <![CDATA[ */
+ gform.initializeOnLoaded( function() {gformInitSpinner( 1, 'https://bridgepointconsulting.com/wp-content/plugins/gravityforms/images/spinner.svg', true );jQuery('#gform_ajax_frame_1').on('load',function(){var contents = jQuery(this).contents().find('*').html();var is_postback = contents.indexOf('GF_AJAX_POSTBACK') >= 0;if(!is_postback){return;}var form_content = jQuery(this).contents().find('#gform_wrapper_1');var is_confirmation = jQuery(this).contents().find('#gform_confirmation_wrapper_1').length > 0;var is_redirect = contents.indexOf('gformRedirect(){') >= 0;var is_form = form_content.length > 0 && ! is_redirect && ! is_confirmation;var mt = parseInt(jQuery('html').css('margin-top'), 10) + parseInt(jQuery('body').css('margin-top'), 10) + 100;if(is_form){jQuery('#gform_wrapper_1').html(form_content.html());if(form_content.hasClass('gform_validation_error')){jQuery('#gform_wrapper_1').addClass('gform_validation_error');} else {jQuery('#gform_wrapper_1').removeClass('gform_validation_error');}setTimeout( function() { /* delay the scroll by 50 milliseconds to fix a bug in chrome */ jQuery(document).scrollTop(jQuery('#gform_wrapper_1').offset().top - mt); }, 50 );if(window['gformInitDatepicker']) {gformInitDatepicker();}if(window['gformInitPriceFields']) {gformInitPriceFields();}var current_page = jQuery('#gform_source_page_number_1').val();gformInitSpinner( 1, 'https://bridgepointconsulting.com/wp-content/plugins/gravityforms/images/spinner.svg', true );jQuery(document).trigger('gform_page_loaded', [1, current_page]);window['gf_submitting_1'] = false;}else if(!is_redirect){var confirmation_content = jQuery(this).contents().find('.GF_AJAX_POSTBACK').html();if(!confirmation_content){confirmation_content = contents;}jQuery('#gform_wrapper_1').replaceWith(confirmation_content);jQuery(document).scrollTop(jQuery('#gf_1').offset().top - mt);jQuery(document).trigger('gform_confirmation_loaded', [1]);window['gf_submitting_1'] = false;wp.a11y.speak(jQuery('#gform_confirmation_message_1').text());}else{jQuery('#gform_1').append(contents);if(window['gformRedirect']) {gformRedirect();}}jQuery(document).trigger("gform_pre_post_render", [{ formId: "1", currentPage: "current_page", abort: function() { this.preventDefault(); } }]);        if (event && event.defaultPrevented) {                return;        }        const gformWrapperDiv = document.getElementById( "gform_wrapper_1" );        if ( gformWrapperDiv ) {            const visibilitySpan = document.createElement( "span" );            visibilitySpan.id = "gform_visibility_test_1";            gformWrapperDiv.insertAdjacentElement( "afterend", visibilitySpan );        }        const visibilityTestDiv = document.getElementById( "gform_visibility_test_1" );        let postRenderFired = false;        function triggerPostRender() {            if ( postRenderFired ) {                return;            }            postRenderFired = true;            gform.core.triggerPostRenderEvents( 1, current_page );            if ( visibilityTestDiv ) {                visibilityTestDiv.parentNode.removeChild( visibilityTestDiv );            }        }        function debounce( func, wait, immediate ) {            var timeout;            return function() {                var context = this, args = arguments;                var later = function() {                    timeout = null;                    if ( !immediate ) func.apply( context, args );                };                var callNow = immediate && !timeout;                clearTimeout( timeout );                timeout = setTimeout( later, wait );                if ( callNow ) func.apply( context, args );            };        }        const debouncedTriggerPostRender = debounce( function() {            triggerPostRender();        }, 200 );        if ( visibilityTestDiv && visibilityTestDiv.offsetParent === null ) {            const observer = new MutationObserver( ( mutations ) => {                mutations.forEach( ( mutation ) => {                    if ( mutation.type === 'attributes' && visibilityTestDiv.offsetParent !== null ) {                        debouncedTriggerPostRender();                        observer.disconnect();                    }                });            });            observer.observe( document.body, {                attributes: true,                childList: false,                subtree: true,                attributeFilter: [ 'style', 'class' ],            });        } else {            triggerPostRender();        }    } );} ); 
+/* ]]> */
+</script>
+												
+					</div>					
+				</div>
+			</div>
+			<div class="col-xl-auto footer--sidebar-col">
+				<h3 class="footer-small-title d-none d-xl-block">&nbsp;</h3>
+				<div class="footer--social-wrap">
+																
+				<a title="Facebook" class="lwh-social-icon lwh-social-icon-fb" rel="noopener noreferrer nofollow button" target="_blank" href="https://www.facebook.com/BridgepointConsultingLLC/?fref=ts">
+			<svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="facebook-f" class="svg-inline--fa fa-facebook-f fa-w-10" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path fill="currentColor" d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"></path></svg>			<span class="screen-reader-text">Facebook</span>
+		</a>
+				
+											
+				<a title="Instagram" class="lwh-social-icon lwh-social-icon-ig" rel="noopener noreferrer nofollow button" target="_blank" href="https://www.instagram.com/teambridgepoint/">
+			<svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="instagram" class="svg-inline--fa fa-instagram fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"></path></svg>			<span class="screen-reader-text">Instagram</span>
+		</a>
+				
+											
+				<a title="X" class="lwh-social-icon lwh-social-icon-tw" rel="noopener noreferrer nofollow button" target="_blank" href="https://twitter.com/bpcextendreach">
+			<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path fill="currentColor" d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"/></svg>			<span class="screen-reader-text">X</span>
+		</a>
+				
+											
+				<a title="LinkedIn" class="lwh-social-icon lwh-social-icon-li" rel="noopener noreferrer nofollow button" target="_blank" href="https://www.linkedin.com/company/bridgepoint-consulting-llc">
+			<svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="linkedin-in" class="svg-inline--fa fa-linkedin-in fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"></path></svg>			<span class="screen-reader-text">LinkedIn</span>
+		</a>
+				
+											
+				<a title="Glassdoor" class="lwh-social-icon lwh-social-icon-gd" rel="noopener noreferrer nofollow button" target="_blank" href="https://www.glassdoor.com/Overview/Working-at-Bridgepoint-Consulting-EI_IE267108.11,33.htm">
+			<svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 21.38"><path fill="currentColor" d="m10.85,14.69c0,.07.05.12.12.12h8.91c.07,0,.12-.05.12-.12V6.54c0-1.99-.71-3.61-2.15-4.75C16.52.75,14.53.13,11.88,0c-.07,0-.12.05-.12.11v3.07c0,.06.05.11.11.11,2.33.15,4.11.85,4.11,3.28h-5.01c-.07,0-.12.05-.12.12v7.99ZM0,6.7c0-.07.05-.12.12-.12h8.91c.07,0,.12.05.12.12v8.14c0,1.99-.71,3.61-2.15,4.75-1.33,1.04-3.31,1.67-5.97,1.79-.07,0-.12-.05-.12-.11v-3.07c0-.06.05-.11.11-.11,2.33-.15,4.11-.85,4.11-3.28H.12c-.07,0-.12-.05-.12-.12v-7.98Z" style="fill-rule: evenodd; stroke-width: 0px;"/></svg>			<span class="screen-reader-text">Glassdoor</span>
+		</a>
+				
+											
+				<a title="Youtube" class="lwh-social-icon lwh-social-icon-yt" rel="noopener noreferrer nofollow button" target="_blank" href="https://www.youtube.com/@Bridgepointconsulting">
+			<svg aria-hidden="true" focusable="false" data-prefix="fab" data-icon="youtube" class="svg-inline--fa fa-youtube fa-w-18" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path fill="currentColor" d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z"></path></svg>			<span class="screen-reader-text">Youtube</span>
+		</a>
+				
+					</div>
+			</div>
+		</div>
+			
+			<nav class="row footer--nav-row">
+				
+				<div class="col-sm-6 col-lg-3 col-xl-auto footer--nav-col-1">
+				<nav class="footer--nav-wrap"><ul id="menu-footer-col-1" class="footer--nav-top"><li id="menu-item-30339" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-30339"><a href="https://bridgepointconsulting.com/management-consulting-firm/">Who We Are</a>
+<ul class="sub-menu">
+	<li id="menu-item-16193" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16193"><a href="https://bridgepointconsulting.com/management-consulting-firm-2/leadership/">Our Team</a></li>
+	<li id="menu-item-29742" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-29742"><a href="https://bridgepointconsulting.com/partners-2/">Our Partners</a></li>
+	<li id="menu-item-31639" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31639"><a href="https://bridgepointconsulting.com/management-consulting-firm/corporate-social-responsibility/">Corporate Social Responsibility</a></li>
+	<li id="menu-item-31649" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31649"><a href="https://bridgepointconsulting.com/management-consulting-firm/our-brands/">Our Brands</a></li>
+	<li id="menu-item-16194" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16194"><a href="https://bridgepointconsulting.com/our-core-values/">Life at Bridgepoint</a></li>
+	<li id="menu-item-16197" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16197"><a href="https://bridgepointconsulting.com/management-consulting-firm-2/careers/">Careers</a></li>
+	<li id="menu-item-16198" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16198"><a href="https://bridgepointconsulting.com/location/">Locations</a></li>
+</ul>
+</li>
+</ul></nav>				</div>
+
+				<div class="col-xl-auto col-sm-6 col-lg-3 footer--nav-col-2">
+				<nav class="footer--nav-wrap"><ul id="menu-footer-col-2" class="footer--nav-top"><li id="menu-item-16199" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-16199"><a href="https://bridgepointconsulting.com/service/">What We Do</a>
+<ul class="sub-menu">
+	<li id="menu-item-32736" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-32736"><a href="https://bridgepointconsulting.com/ai-advisory-services/">AI Advisory Services</a></li>
+	<li id="menu-item-16200" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16200"><a href="https://bridgepointconsulting.com/service/financial-consulting/">Finance &#038; Accounting Advisory</a></li>
+	<li id="menu-item-16201" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16201"><a href="https://bridgepointconsulting.com/service/transaction-advisory/">Private Equity Advisory</a></li>
+	<li id="menu-item-16202" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16202"><a href="https://bridgepointconsulting.com/service/risk-compliance/">Risk Management</a></li>
+	<li id="menu-item-16204" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16204"><a href="https://bridgepointconsulting.com/service/technology/netsuite/">NetSuite Services</a></li>
+	<li id="menu-item-16203" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16203"><a href="https://bridgepointconsulting.com/service/technology/">Oracle Cloud Solutions</a></li>
+</ul>
+</li>
+</ul></nav>				</div>
+
+				<div class="col-xl-auto col-sm-6 col-lg-3 footer--nav-col-3">
+				<nav class="footer--nav-wrap"><ul id="menu-footer-col-3" class="footer--nav-top"><li id="menu-item-30675" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-30675"><a href="https://bridgepointconsulting.com/who-we-serve/">Who We Serve</a>
+<ul class="sub-menu">
+	<li id="menu-item-16207" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16207"><a href="https://bridgepointconsulting.com/industries/business-leaders/">Business Leaders</a></li>
+	<li id="menu-item-16209" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16209"><a href="https://bridgepointconsulting.com/industries/growing-companies/">Growing Companies</a></li>
+	<li id="menu-item-16208" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16208"><a href="https://bridgepointconsulting.com/industries/centers-of-influence/">Centers of Influence</a></li>
+</ul>
+</li>
+<li id="menu-item-30676" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-30676"><a href="https://bridgepointconsulting.com/industries/">Industries</a>
+<ul class="sub-menu">
+	<li id="menu-item-30677" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30677"><a href="https://bridgepointconsulting.com/industries/construction-real-estate/">Construction &#038; Real Estate</a></li>
+	<li id="menu-item-30678" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30678"><a href="https://bridgepointconsulting.com/industries/consumer-entertainment-retail/">Consumer, Entertainment &#038; Retail</a></li>
+	<li id="menu-item-30679" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30679"><a href="https://bridgepointconsulting.com/industries/education-nonprofit/">Education &#038; Nonprofit</a></li>
+	<li id="menu-item-30680" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30680"><a href="https://bridgepointconsulting.com/industries/energy/">Energy</a></li>
+	<li id="menu-item-30683" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30683"><a href="https://bridgepointconsulting.com/industries/financial-services/">Financial Services</a></li>
+	<li id="menu-item-30681" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30681"><a href="https://bridgepointconsulting.com/industries/healthcare-life-sciences/">Healthcare &#038; Life Sciences</a></li>
+	<li id="menu-item-30682" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30682"><a href="https://bridgepointconsulting.com/industries/manufacturing-distribution/">Manufacturing &#038; Distribution</a></li>
+	<li id="menu-item-30684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30684"><a href="https://bridgepointconsulting.com/industries/professional-services/">Professional Services</a></li>
+	<li id="menu-item-30685" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30685"><a href="https://bridgepointconsulting.com/industries/public-sector/">Public Sector</a></li>
+	<li id="menu-item-30686" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30686"><a href="https://bridgepointconsulting.com/industries/technology-software/">Technology &#038; Software</a></li>
+</ul>
+</li>
+</ul></nav>				</div>
+
+				<div class="col-xl-auto col-sm-6 col-lg-3 footer--sidebar-col">
+				<nav class="footer--nav-wrap"><ul id="menu-footer-col-4" class="footer--nav-top col-4-mod"><li id="menu-item-30744" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30744"><a href="https://bridgepointconsulting.com/management-consulting-firm-2/contact/">Contact</a></li>
+<li id="menu-item-16211" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-16211"><a href="https://bridgepointconsulting.com/insights/">Insights</a></li>
+</ul></nav>				</div>
+
+			</nav>
+			<hr class="footer--bottom-divider" />
+		</div>
+	</div>
+	
+	<div class="footer--bottom">
+		<div class="footer--bottom-container container">
+			<div class="row footer--bottom-row">
+				
+				<div class="col-lg footer--bottom-col-second order-lg-2">
+					<nav class="footer--bottom-nav-wrap"><ul id="menu-footer-privacy-menu" class="footer--nav-bottom"><li id="menu-item-15869" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-15869"><a href="https://bridgepointconsulting.com/terms-of-service/">Terms of Service</a></li>
+<li id="menu-item-15870" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-15870"><a href="https://bridgepointconsulting.com/privacy-policy/">Privacy Policy</a></li>
+</ul></nav>				</div>
+				
+				<div class="col-lg footer--bottom-col-first d-lg-flex flex-lg-column justify-content-lg-center">
+					<p class="footer--copyright">&copy; 2026 Bridgepoint Consulting</p>
+				</div>				
+
+			</div>
+		</div>
+	</div>
+	
+</footer>
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/bridgepoint-20221/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/js/vendor.min.js?ver=1.0.70" id="lwh-vendor-js"></script>
+<script type="text/javascript" id="lwh-main-js-extra">
+/* <![CDATA[ */
+var themeGlobals = {"theme_url":"https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221","home_url":"https://bridgepointconsulting.com"};
+//# sourceURL=lwh-main-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/js/main.js?ver=1.0.70" id="lwh-main-js"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/js/aos.min.js?ver=2.3.1" id="lwh-aos-js"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/js/superfish.js?ver=v1.7.10" id="superfish-js"></script>
+<script type="text/javascript" defer='defer' src="https://bridgepointconsulting.com/wp-content/themes/bridgepoint-20221/js/circletype.min.js?ver=1.0.70" id="lwh-circletype-js"></script>
+<script type="text/javascript" id="leadin-script-loader-js-js-extra">
+/* <![CDATA[ */
+var leadin_wordpress = {"userRole":"visitor","pageType":"post","leadinPluginVersion":"11.3.45"};
+//# sourceURL=leadin-script-loader-js-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://js.hs-scripts.com/4244633.js?integration=WordPress&amp;ver=11.3.45" id="leadin-script-loader-js-js"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-content/plugins/google-site-kit/dist/assets/js/googlesitekit-consent-mode-da15714e8829855bb7ce.js" id="googlesitekit-consent-mode-js"></script>
+<script type="text/javascript" id="gforms_recaptcha_recaptcha-js-extra">
+/* <![CDATA[ */
+var gforms_recaptcha_recaptcha_strings = {"nonce":"b83474437d","disconnect":"Disconnecting","change_connection_type":"Resetting","spinner":"https://bridgepointconsulting.com/wp-content/plugins/gravityforms/images/spinner.svg","connection_type":"classic","disable_badge":"1","change_connection_type_title":"Change Connection Type","change_connection_type_message":"Changing the connection type will delete your current settings.  Do you want to proceed?","disconnect_title":"Disconnect","disconnect_message":"Disconnecting from reCAPTCHA will delete your current settings.  Do you want to proceed?","site_key":"6LcqdPEqAAAAAGSChXDCC0xreaucOyYgO7Rv0Y8E"};
+//# sourceURL=gforms_recaptcha_recaptcha-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?render=6LcqdPEqAAAAAGSChXDCC0xreaucOyYgO7Rv0Y8E&amp;ver=2.2.2" id="gforms_recaptcha_recaptcha-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-content/plugins/gravityformsrecaptcha/js/frontend.min.js?ver=2.2.2" id="gforms_recaptcha_frontend-js" defer="defer" data-wp-strategy="defer"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-includes/js/dist/dom-ready.min.js?ver=f77871ff7694fffea381" id="wp-dom-ready-js"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-includes/js/dist/hooks.min.js?ver=dd5603f07f9220ed27f1" id="wp-hooks-js"></script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-includes/js/dist/i18n.min.js?ver=c26c3dc7bed366793375" id="wp-i18n-js"></script>
+<script type="text/javascript" id="wp-i18n-js-after">
+/* <![CDATA[ */
+wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );
+//# sourceURL=wp-i18n-js-after
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://bridgepointconsulting.com/wp-includes/js/dist/a11y.min.js?ver=cb460b4676c94bd228ed" id="wp-a11y-js"></script>
+<script type="text/javascript" defer='defer' src="https://bridgepointconsulting.com/wp-content/plugins/gravityforms/js/jquery.json.min.js?ver=2.10.2" id="gform_json-js"></script>
+<script type="text/javascript" id="gform_gravityforms-js-extra">
+/* <![CDATA[ */
+var gform_i18n = {"datepicker":{"days":{"monday":"Mo","tuesday":"Tu","wednesday":"We","thursday":"Th","friday":"Fr","saturday":"Sa","sunday":"Su"},"months":{"january":"January","february":"February","march":"March","april":"April","may":"May","june":"June","july":"July","august":"August","september":"September","october":"October","november":"November","december":"December"},"firstDay":1,"iconText":"Select date"}};
+var gf_legacy_multi = [];
+var gform_gravityforms = {"strings":{"invalid_file_extension":"This type of file is not allowed. Must be one of the following:","delete_file":"Delete this file","in_progress":"in progress","file_exceeds_limit":"File exceeds size limit","illegal_extension":"This type of file is not allowed.","max_reached":"Maximum number of files reached","unknown_error":"There was a problem while saving the file on the server","currently_uploading":"Please wait for the uploading to complete","cancel":"Cancel","cancel_upload":"Cancel this upload","cancelled":"Cancelled","error":"Error","message":"Message"},"vars":{"images_url":"https://bridgepointconsulting.com/wp-content/plugins/gravityforms/images"}};
+var gf_global = {"gf_currency_config":{"name":"U.S. Dollar","symbol_left":"$","symbol_right":"","symbol_padding":"","thousand_separator":",","decimal_separator":".","decimals":2,"code":"USD"},"base_url":"https://bridgepointconsulting.com/wp-content/plugins/gravityforms","number_formats":[],"spinnerUrl":"https://bridgepointconsulting.com/wp-content/plugins/gravityforms/images/spinner.svg","version_hash":"420a3d03fb67d5c278bad7e297dcf9c0","strings":{"newRowAdded":"New row added.","rowRemoved":"Row removed","formSaved":"The form has been saved.  The content contains the link to return and complete the form."}};
+//# sourceURL=gform_gravityforms-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" defer='defer' src="https://bridgepointconsulting.com/wp-content/plugins/gravityforms/js/gravityforms.min.js?ver=2.10.2" id="gform_gravityforms-js"></script>
+<script type="text/javascript" defer='defer' src="https://bridgepointconsulting.com/wp-content/plugins/gravityforms/js/placeholders.jquery.min.js?ver=2.10.2" id="gform_placeholder-js"></script>
+<script type="text/javascript" defer='defer' src="https://bridgepointconsulting.com/wp-content/plugins/gravityforms/assets/js/dist/utils.min.js?ver=3f278756f0a3032bed328ff6a9f6c01d" id="gform_gravityforms_utils-js"></script>
+<script type="text/javascript" defer='defer' src="https://bridgepointconsulting.com/wp-content/plugins/gravityforms/assets/js/dist/vendor-theme.min.js?ver=7c651d0ba638ce98b9c65141edddd567" id="gform_gravityforms_theme_vendors-js"></script>
+<script type="text/javascript" id="gform_gravityforms_theme-js-extra">
+/* <![CDATA[ */
+var gform_theme_config = {"common":{"form":{"honeypot":{"version_hash":"420a3d03fb67d5c278bad7e297dcf9c0"},"ajax":{"ajaxurl":"https://bridgepointconsulting.com/wp-admin/admin-ajax.php","ajax_submission_nonce":"b89a4488c7","i18n":{"step_announcement":"Step %1$s of %2$s, %3$s","unknown_error":"There was an unknown error processing your request. Please try again.","error_403":"The request was blocked (403 error) for unknown security reasons. Remove any code-like text (scripts or DB queries) and try again."}}}},"hmr_dev":"","public_path":"https://bridgepointconsulting.com/wp-content/plugins/gravityforms/assets/js/dist/","config_nonce":"26b0eaf256"};
+//# sourceURL=gform_gravityforms_theme-js-extra
+/* ]]> */
+</script>
+<script type="text/javascript" defer='defer' src="https://bridgepointconsulting.com/wp-content/plugins/gravityforms/assets/js/dist/scripts-theme.min.js?ver=301fdc9aa6144168f3b854c4c2c8f6d3" id="gform_gravityforms_theme-js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+ gform.initializeOnLoaded( function() { jQuery(document).on('gform_post_render', function(event, formId, currentPage){if(formId == 1) {if(typeof Placeholders != 'undefined'){
+                        Placeholders.enable();
+                    }} } );jQuery(document).on('gform_post_conditional_logic', function(event, formId, fields, isInit){} ) } ); 
+/* ]]> */
+</script>
+<script type="text/javascript">
+/* <![CDATA[ */
+ gform.initializeOnLoaded( function() {jQuery(document).trigger("gform_pre_post_render", [{ formId: "1", currentPage: "1", abort: function() { this.preventDefault(); } }]);        if (event && event.defaultPrevented) {                return;        }        const gformWrapperDiv = document.getElementById( "gform_wrapper_1" );        if ( gformWrapperDiv ) {            const visibilitySpan = document.createElement( "span" );            visibilitySpan.id = "gform_visibility_test_1";            gformWrapperDiv.insertAdjacentElement( "afterend", visibilitySpan );        }        const visibilityTestDiv = document.getElementById( "gform_visibility_test_1" );        let postRenderFired = false;        function triggerPostRender() {            if ( postRenderFired ) {                return;            }            postRenderFired = true;            gform.core.triggerPostRenderEvents( 1, 1 );            if ( visibilityTestDiv ) {                visibilityTestDiv.parentNode.removeChild( visibilityTestDiv );            }        }        function debounce( func, wait, immediate ) {            var timeout;            return function() {                var context = this, args = arguments;                var later = function() {                    timeout = null;                    if ( !immediate ) func.apply( context, args );                };                var callNow = immediate && !timeout;                clearTimeout( timeout );                timeout = setTimeout( later, wait );                if ( callNow ) func.apply( context, args );            };        }        const debouncedTriggerPostRender = debounce( function() {            triggerPostRender();        }, 200 );        if ( visibilityTestDiv && visibilityTestDiv.offsetParent === null ) {            const observer = new MutationObserver( ( mutations ) => {                mutations.forEach( ( mutation ) => {                    if ( mutation.type === 'attributes' && visibilityTestDiv.offsetParent !== null ) {                        debouncedTriggerPostRender();                        observer.disconnect();                    }                });            });            observer.observe( document.body, {                attributes: true,                childList: false,                subtree: true,                attributeFilter: [ 'style', 'class' ],            });        } else {            triggerPostRender();        }    } ); 
+/* ]]> */
+</script>
+<script defer src="https://addisongroupsf.sensehq.com/snippet.js"></script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9fba79714d4b76a2',t:'MTc3ODc2NzcwMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
