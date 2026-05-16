@@ -181,6 +181,11 @@
       "type": ".txt"
     },
     {
+      "name": "run_append.py",
+      "path": "pipelines/b2b_lead_gen/run_append.py",
+      "type": ".py"
+    },
+    {
       "name": "target_queries.txt",
       "path": "pipelines/b2b_lead_gen/target_queries.txt",
       "type": ".txt"
