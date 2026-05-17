@@ -166,6 +166,11 @@
   ],
   "b2b_lead_gen": [
     {
+      "name": "firm5.json",
+      "path": "pipelines/b2b_lead_gen/firm5.json",
+      "type": ".json"
+    },
+    {
       "name": "pipeline_instructions.md",
       "path": "pipelines/b2b_lead_gen/pipeline_instructions.md",
       "type": ".md"
@@ -181,14 +186,49 @@
       "type": ".txt"
     },
     {
+      "name": "fetch_wm.py",
+      "path": "pipelines/b2b_lead_gen/fetch_wm.py",
+      "type": ".py"
+    },
+    {
+      "name": "scraper.py",
+      "path": "pipelines/b2b_lead_gen/scraper.py",
+      "type": ".py"
+    },
+    {
+      "name": "firm2.json",
+      "path": "pipelines/b2b_lead_gen/firm2.json",
+      "type": ".json"
+    },
+    {
       "name": "run_append.py",
       "path": "pipelines/b2b_lead_gen/run_append.py",
       "type": ".py"
     },
     {
+      "name": "firm1.json",
+      "path": "pipelines/b2b_lead_gen/firm1.json",
+      "type": ".json"
+    },
+    {
+      "name": "firm4.json",
+      "path": "pipelines/b2b_lead_gen/firm4.json",
+      "type": ".json"
+    },
+    {
       "name": "target_queries.txt",
       "path": "pipelines/b2b_lead_gen/target_queries.txt",
       "type": ".txt"
+    },
+    {
+      "name": "process_json.py",
+      "path": "pipelines/b2b_lead_gen/process_json.py",
+      "type": ".py"
+    },
+    {
+      "name": "firm3.json",
+      "path": "pipelines/b2b_lead_gen/firm3.json",
+      "type": ".json"
     },
     {
       "name": "update_plan.md",
@@ -198,6 +238,11 @@
     {
       "name": "append_leads.py",
       "path": "pipelines/b2b_lead_gen/append_leads.py",
+      "type": ".py"
+    },
+    {
+      "name": "fetch_clark.py",
+      "path": "pipelines/b2b_lead_gen/fetch_clark.py",
       "type": ".py"
     }
   ]
