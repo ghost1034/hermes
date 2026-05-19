@@ -171,6 +171,11 @@
       "type": ".json"
     },
     {
+      "name": "append_leads_today.py",
+      "path": "pipelines/b2b_lead_gen/append_leads_today.py",
+      "type": ".py"
+    },
+    {
       "name": "pipeline_instructions.md",
       "path": "pipelines/b2b_lead_gen/pipeline_instructions.md",
       "type": ".md"
